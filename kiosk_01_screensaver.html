@@ -109,20 +109,44 @@
 
         /* 商品画像エリア */
         .product-showcase {
-            width: 250px;
-            height: 160px;
+            width: 320px;
+            height: 260px;
             position: relative;
             overflow: hidden;
             border-radius: 12px;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
             flex-shrink: 0;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        .tenant-logo {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+            margin-bottom: 10px;
+            align-self: center;
+            flex-shrink: 0;
         }
 
         .product-image {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            animation: slideShow 10s infinite;
+            height: 160px;
+            object-fit: contain;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+        }
+
+        .product-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-dark);
+            text-align: center;
+            margin-top: 10px;
+            line-height: 1.2;
+            flex-shrink: 0;
         }
 
         /* フッターメッセージ */
@@ -157,17 +181,17 @@
         }
 
         @keyframes slideShow {
-            0%, 30% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            40%, 60% {
+            0% {
                 opacity: 0;
-                transform: scale(1.1);
+                transform: scale(0.95);
             }
-            70%, 100% {
+            10%, 90% {
                 opacity: 1;
                 transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.95);
             }
         }
 
@@ -235,8 +259,10 @@
             </div>
 
             <!-- 商品画像ショーケース -->
-            <div class="product-showcase">
+            <div class="product-showcase" style="opacity: 0;">
+                <img src="media/kuromon_logo.png" alt="Kuromon" class="tenant-logo" id="tenantLogo">
                 <img src="media/kuromon.png" alt="Delicious Ramen" class="product-image" id="showcaseImage">
+                <div class="product-label" id="productLabel">Kuromon Ramen</div>
             </div>
 
         </div>
@@ -258,36 +284,53 @@
 
         // 商品画像のローテーション（デモ用）
         const productImages = [
-            { icon: '🍜', name: 'Kuromon Ramen', image: 'media/kuromon.png' },
-            { icon: '🍜', name: 'Men-ya Mufu Ramen', image: 'media/men-ya_mufu.png' },
-            { icon: '🍖', name: 'Narikura Tonkatsu', image: 'media/narikura.png' },
-            { icon: '🍗', name: 'Tori Bien Yakitori', image: 'media/tori_bien.png' },
-            { icon: '🥤', name: 'Soft Drink', image: 'media/soda.jpeg' },
-            { icon: '🍕', name: 'Bodega Pizza', image: 'media/bodega.png' },
-            { icon: '🍜', name: 'Hayato Ramen', image: 'media/ramen_hayato.png' },
-            { icon: '🐙', name: 'Wanaka Takoyaki', image: 'media/wanaka.png' },
-            { icon: '🍢', name: 'Osaka Kushiage', image: 'media/osaka_kushiage.png' }
+            { icon: '🍜', name: 'Kuromon Ramen', image: 'media/kuromon.png', tenantLogo: 'media/kuromon_logo.png' },
+            { icon: '🍜', name: 'Men-ya Mufu Ramen', image: 'media/men-ya_mufu.png', tenantLogo: 'media/men-ya_mufu_logo.png' },
+            { icon: '🍖', name: 'Narikura Tonkatsu', image: 'media/narikura.png', tenantLogo: 'media/narikura_logo.png' },
+            { icon: '🍗', name: 'Tori Bien Yakitori', image: 'media/tori_bien.png', tenantLogo: 'media/tori_bien_logo.png' },
+            { icon: '🍕', name: 'Bodega Pizza', image: 'media/bodega.png', tenantLogo: 'media/bodega_logo.png' },
+            { icon: '🍜', name: 'Hayato Ramen', image: 'media/ramen_hayato.png', tenantLogo: 'media/ramen_hayato_logo.png' },
+            { icon: '🐙', name: 'Wanaka Takoyaki', image: 'media/wanaka.png', tenantLogo: 'media/wanaka_log.png' },
+            { icon: '🍢', name: 'Osaka Kushiage', image: 'media/osaka_kushiage.png', tenantLogo: 'media/osaka_kushiage_logo.png' }
         ];
 
         let currentImageIndex = 0;
 
         function rotateProductImage() {
             currentImageIndex = (currentImageIndex + 1) % productImages.length;
+            const showcase = document.querySelector('.product-showcase');
             const showcaseImage = document.getElementById('showcaseImage');
+            const tenantLogo = document.getElementById('tenantLogo');
+            const productLabel = document.getElementById('productLabel');
             const currentProduct = productImages[currentImageIndex];
             
             // フェードアウト
-            showcaseImage.style.opacity = '0';
-            showcaseImage.style.transition = 'opacity 0.5s';
+            showcase.style.opacity = '0';
+            showcase.style.transform = 'scale(0.95)';
+            showcase.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
             
             setTimeout(() => {
+                // 画像とテキストを更新
                 showcaseImage.src = currentProduct.image;
                 showcaseImage.alt = currentProduct.name;
+                tenantLogo.src = currentProduct.tenantLogo;
+                tenantLogo.alt = currentProduct.name + ' Logo';
+                productLabel.textContent = currentProduct.name;
+                
                 // フェードイン
-                showcaseImage.style.opacity = '1';
+                showcase.style.opacity = '1';
+                showcase.style.transform = 'scale(1)';
             }, 500);
         }
 
+        // 初期表示アニメーション
+        setTimeout(() => {
+            const showcase = document.querySelector('.product-showcase');
+            showcase.style.transition = 'opacity 1s ease-out, transform 1s ease-out';
+            showcase.style.opacity = '1';
+            showcase.style.transform = 'scale(1)';
+        }, 500);
+        
         // 10秒ごとに画像を切り替え
         setInterval(rotateProductImage, 10000);
 

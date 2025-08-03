@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIOSK - Order Summary</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* CSS変数定義 */
+        :root {
+            --primary-red: #dc3545;
+            --primary-orange: #fd7e14;
+            --primary-green: #28a745;
+            --primary-blue: #007bff;
+            --background-white: #ffffff;
+            --text-dark: #212529;
+            --text-light: #6c757d;
+            --border-gray: #dee2e6;
+        }
+
+        /* ベースレイアウト */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-white);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* KIOSKコンテナ */
+        .kiosk-container {
+            width: 480px;
+            height: 800px;
+            margin: 0 auto;
+            background-color: var(--background-white);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダー */
+        .header {
+            height: 70px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--background-white);
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .yuu-logo {
+            height: 50px;
+            width: auto;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .yuu-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .title-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .cart-icon-header {
+            font-size: 12px;
+            color: var(--primary-red);
+        }
+
+        /* メインコンテンツ */
+        .main-content {
+            flex: 1;
+            padding: 8px;
+            overflow-y: auto;
+        }
+
+        /* 注文リスト */
+        .order-items {
+            margin-bottom: 8px;
+        }
+
+        .order-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid var(--border-gray);
+            transition: background-color 0.3s ease;
+        }
+
+        .order-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .item-image {
+            width: 65px;
+            height: 65px;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+            border: 1px solid var(--border-gray);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .quantity-btn {
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--primary-blue);
+            border-radius: 3px;
+            background-color: white;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-btn:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .quantity-display {
+            font-size: 9px;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+            color: var(--text-dark);
+        }
+
+        .item-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .item-quantity {
+            font-size: 9px;
+            color: var(--text-light);
+        }
+
+        .item-price {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--primary-green);
+            margin-right: 6px;
+        }
+
+        .delete-btn {
+            width: 20px;
+            height: 20px;
+            border: none;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: var(--text-light);
+        }
+
+        .delete-btn:hover {
+            background-color: var(--primary-red);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* 価格サマリー */
+        .price-summary {
+            background-color: #f8f9fa;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .price-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .price-value {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .subtotal {
+            color: var(--text-dark);
+        }
+
+        .tax {
+            color: var(--text-light);
+            border-top: 1px solid var(--border-gray);
+            margin-top: 4px;
+            padding-top: 6px;
+        }
+
+        .total {
+            color: var(--primary-green);
+            font-size: 16px;
+            border-top: 2px solid var(--border-gray);
+            margin-top: 6px;
+            padding-top: 6px;
+        }
+        
+        .total .price-label {
+            font-size: 15px;
+            font-weight: bold;
+        }
+        
+        .total .price-value {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        /* アクションボタン */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .checkout-btn {
+            padding: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            background-color: var(--primary-green);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .checkout-btn:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+
+        .checkout-btn:disabled {
+            background-color: var(--border-gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .secondary-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .cancel-all-btn, .back-menu-btn {
+            flex: 1;
+            padding: 8px;
+            font-size: 11px;
+            border: 1px solid;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .cancel-all-btn {
+            color: var(--primary-red);
+            border-color: var(--primary-red);
+            background-color: white;
+        }
+
+        .cancel-all-btn:hover {
+            background-color: var(--primary-red);
+            color: white;
+        }
+
+        .back-menu-btn {
+            color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            background-color: white;
+        }
+
+        .back-menu-btn:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        /* 空のカート状態 */
+        .empty-cart {
+            text-align: center;
+            padding: 50px 15px;
+            color: var(--text-light);
+        }
+
+        .empty-cart-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .empty-cart-message {
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .empty-cart-btn {
+            padding: 10px 20px;
+            font-size: 10px;
+            color: var(--primary-blue);
+            background-color: white;
+            border: 2px solid var(--primary-blue);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .empty-cart-btn:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        /* アニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .order-item {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* 削除確認モーダル */
+        .confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .confirm-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            margin: 20px;
+        }
+
+        .confirm-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--text-dark);
+        }
+
+        .confirm-message {
+            font-size: 13px;
+            margin-bottom: 30px;
+            color: var(--text-light);
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .confirm-yes, .confirm-no {
+            flex: 1;
+            padding: 15px;
+            font-size: 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-yes {
+            background-color: var(--primary-red);
+            color: white;
+        }
+
+        .confirm-yes:hover {
+            background-color: #c82333;
+        }
+
+        .confirm-no {
+            background-color: var(--border-gray);
+            color: var(--text-dark);
+        }
+
+        .confirm-no:hover {
+            background-color: #adb5bd;
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-title">
+                <img src="media/yuu_logo.png" alt="YUU Food Hall" class="yuu-logo" onclick="goToScreensaver()">
+                <span class="title-text">Order Summary</span>
+                <span class="cart-icon-header">🛒</span>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content" id="mainContent">
+            <!-- 注文アイテムが動的に生成される -->
+        </main>
+    </div>
+
+    <!-- 削除確認モーダル -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-content">
+            <div class="confirm-title">Remove Item?</div>
+            <div class="confirm-message">
+                Are you sure you want to remove this item from your cart?
+            </div>
+            <div class="confirm-buttons">
+                <button class="confirm-yes" onclick="confirmDelete()">Yes, Remove</button>
+                <button class="confirm-no" onclick="closeConfirmModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 状態管理
+        let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+        let itemToDelete = null;
+        const TAX_RATE = 0.08875; // 8.875% tax rate
+
+        // 初期化
+        function init() {
+            renderOrderSummary();
+        }
+
+        // 注文サマリーの描画
+        function renderOrderSummary() {
+            const mainContent = document.getElementById('mainContent');
+            
+            if (cart.length === 0) {
+                renderEmptyCart(mainContent);
+                return;
+            }
+
+            const subtotal = calculateSubtotal();
+            const tax = subtotal * TAX_RATE;
+            const total = subtotal + tax;
+
+            mainContent.innerHTML = `
+                <div class="order-items">
+                    ${cart.map((item, index) => `
+                        <div class="order-item" style="animation-delay: ${index * 0.1}s">
+                            <div class="item-image">${item.image ? `<img src="${item.image}" alt="${item.name}">` : item.icon}</div>
+                            <div class="item-details">
+                                <div class="item-name">${item.name}</div>
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn" onclick="decreaseQuantity(${item.id})">−</button>
+                                    <span class="quantity-display">${item.quantity}</span>
+                                    <button class="quantity-btn" onclick="increaseQuantity(${item.id})">+</button>
+                                </div>
+                            </div>
+                            <div class="item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+                            <button class="delete-btn" onclick="showDeleteConfirm(${item.id})">🗑️</button>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="price-summary">
+                    <div class="price-row subtotal">
+                        <div class="price-label">Subtotal (Before Tax):</div>
+                        <div class="price-value">$${subtotal.toFixed(2)}</div>
+                    </div>
+                    <div class="price-row tax">
+                        <div class="price-label">Tax (8.875%):</div>
+                        <div class="price-value">$${tax.toFixed(2)}</div>
+                    </div>
+                    <div class="price-row total">
+                        <div class="price-label">Total:</div>
+                        <div class="price-value">$${total.toFixed(2)}</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="checkout-btn" onclick="proceedToCheckout()">
+                        Check out
+                    </button>
+                    <div class="secondary-buttons">
+                        <button class="cancel-all-btn" onclick="showCancelAllConfirm()">Cancel All</button>
+                        <a href="kiosk_03_main_menu.html" class="back-menu-btn">Back to menu</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 空のカート表示
+        function renderEmptyCart(container) {
+            container.innerHTML = `
+                <div class="empty-cart">
+                    <div class="empty-cart-icon">🛒</div>
+                    <div class="empty-cart-message">Your cart is empty</div>
+                    <a href="kiosk_03_main_menu.html" class="empty-cart-btn">Browse Menu</a>
+                </div>
+            `;
+        }
+
+        // 小計計算
+        function calculateSubtotal() {
+            return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        }
+
+        // アイテム削除確認表示
+        function showDeleteConfirm(itemId) {
+            itemToDelete = itemId;
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+
+        // 削除確認モーダルを閉じる
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            itemToDelete = null;
+        }
+
+        // アイテム削除実行
+        function confirmDelete() {
+            if (itemToDelete !== null) {
+                cart = cart.filter(item => item.id !== itemToDelete);
+                sessionStorage.setItem('cart', JSON.stringify(cart));
+                closeConfirmModal();
+                renderOrderSummary();
+            }
+        }
+
+        // 数量増加
+        function increaseQuantity(itemId) {
+            const item = cart.find(item => item.id === itemId);
+            if (item && item.quantity < 10) {
+                item.quantity += 1;
+                sessionStorage.setItem('cart', JSON.stringify(cart));
+                renderOrderSummary();
+            }
+        }
+
+        // 数量減少
+        function decreaseQuantity(itemId) {
+            const item = cart.find(item => item.id === itemId);
+            if (item) {
+                if (item.quantity > 1) {
+                    item.quantity -= 1;
+                    sessionStorage.setItem('cart', JSON.stringify(cart));
+                    renderOrderSummary();
+                } else {
+                    // 数量が1の場合は削除確認を表示
+                    showDeleteConfirm(itemId);
+                }
+            }
+        }
+
+        // 全キャンセル確認
+        function showCancelAllConfirm() {
+            const modal = document.getElementById('confirmModal');
+            const content = modal.querySelector('.confirm-content');
+            
+            content.innerHTML = `
+                <div class="confirm-title">Cancel All Items?</div>
+                <div class="confirm-message">
+                    This will remove all items from your cart. This action cannot be undone.
+                </div>
+                <div class="confirm-buttons">
+                    <button class="confirm-yes" onclick="cancelAllItems()">Yes, Cancel All</button>
+                    <button class="confirm-no" onclick="closeConfirmModal()">Keep Items</button>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+
+        // 全アイテムキャンセル
+        function cancelAllItems() {
+            cart = [];
+            sessionStorage.setItem('cart', JSON.stringify(cart));
+            closeConfirmModal();
+            renderOrderSummary();
+        }
+
+        // チェックアウトへ進む
+        function proceedToCheckout() {
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            
+            // 顧客情報入力画面へ
+            window.location.href = 'kiosk_07_customer_field.html';
+        }
+
+        // キーボードイベント
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeConfirmModal();
+            } else if (e.key === 'Enter' && cart.length > 0) {
+                const modal = document.getElementById('confirmModal');
+                if (modal.style.display === 'none' || !modal.style.display) {
+                    proceedToCheckout();
+                }
+            }
+        });
+
+        // YUUロゴクリックでスクリーンセーバーに戻る
+        function goToScreensaver() {
+            if (confirm('Return to screensaver? Your current cart will be cleared.')) {
+                sessionStorage.clear();
+                window.location.href = 'kiosk_01_screensaver.html';
+            }
+        }
+        
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>

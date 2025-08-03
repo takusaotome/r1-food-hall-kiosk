@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIOSK - Screen Saver</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* CSS変数定義 */
+        :root {
+            --primary-red: #dc3545;
+            --primary-orange: #fd7e14;
+            --primary-green: #28a745;
+            --primary-blue: #007bff;
+            --background-white: #ffffff;
+            --text-dark: #212529;
+            --text-light: #6c757d;
+            --border-gray: #dee2e6;
+        }
+
+        /* ベースレイアウト */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-white);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* KIOSKコンテナ */
+        .kiosk-container {
+            width: 480px;
+            height: 800px;
+            margin: 0 auto;
+            background-color: var(--background-white);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        /* スクリーンセーバーレイアウト */
+        .screensaver {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100%;
+            padding: 60px 20px 20px;
+            animation: fadeIn 2s ease-in-out;
+            gap: 30px;
+        }
+
+        /* ブランドロゴエリア */
+        .brand-logo-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .brand-logo {
+            height: 80px;
+            width: auto;
+        }
+
+        .brand-text {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-left: 12px;
+            letter-spacing: 1px;
+        }
+
+        /* メインメッセージエリア */
+        .main-message-area {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .order-here {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--text-dark);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+
+        .touch-message {
+            font-size: 14px;
+            color: var(--text-dark);
+            line-height: 1.4;
+            animation: pulse 2s infinite;
+            font-weight: 500;
+        }
+
+        /* 商品画像エリア */
+        .product-showcase {
+            width: 250px;
+            height: 160px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            animation: slideShow 10s infinite;
+        }
+
+        /* フッターメッセージ */
+        .footer-message {
+            font-size: 12px;
+            color: var(--text-light);
+            text-align: center;
+            font-style: italic;
+            flex-shrink: 0;
+            margin-top: 20px;
+        }
+
+        /* アニメーション定義 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.02);
+            }
+        }
+
+        @keyframes slideShow {
+            0%, 30% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            40%, 60% {
+                opacity: 0;
+                transform: scale(1.1);
+            }
+            70%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* タッチフィードバック */
+        .kiosk-container:active {
+            transform: scale(0.99);
+            transition: transform 0.1s;
+        }
+
+        /* プレースホルダー画像スタイル */
+        .placeholder-image {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            font-size: 24px;
+            color: var(--text-light);
+        }
+
+        .placeholder-logo {
+            width: 200px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e3f2fd;
+            border: 2px dashed var(--primary-blue);
+            border-radius: 10px;
+            font-size: 24px;
+            color: var(--primary-blue);
+            font-weight: bold;
+        }
+
+        /* 日本語ロゴスタイル */
+        .jp-logo {
+            background-color: var(--text-dark);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        /* レスポンシブ調整（横向き対応） */
+        @media (orientation: landscape) and (max-height: 1080px) {
+            .kiosk-container {
+                width: 1920px;
+                height: 1080px;
+                flex-direction: row;
+            }
+
+            .screensaver {
+                flex-direction: row;
+                padding: 40px;
+            }
+
+            .order-here {
+                font-size: 56px;
+            }
+
+            .touch-message {
+                font-size: 28px;
+            }
+
+            .product-showcase {
+                width: 500px;
+                height: 375px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container" onclick="goToNextScreen()">
+        <div class="screensaver">
+            <!-- ブランドロゴエリア -->
+            <div class="brand-logo-area">
+                <img src="media/yuu_logo.png" alt="YUU Food Hall" class="brand-logo">
+            </div>
+
+            <!-- メインメッセージ -->
+            <div class="main-message-area">
+                <h1 class="order-here">ORDER HERE</h1>
+                <p class="touch-message">
+                    TOUCH<br>
+                    SCREEN TO<br>
+                    BEGIN
+                </p>
+            </div>
+
+            <!-- 商品画像ショーケース -->
+            <div class="product-showcase">
+                <img src="media/kuromon.png" alt="Delicious Ramen" class="product-image" id="showcaseImage">
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 次の画面への遷移
+        function goToNextScreen() {
+            // アニメーション効果
+            const container = document.querySelector('.kiosk-container');
+            container.style.opacity = '0';
+            container.style.transition = 'opacity 0.5s ease-out';
+            
+            // 実際の画面遷移（デモ用）
+            setTimeout(() => {
+                window.location.href = 'kiosk_02_here_or_togo.html';
+            }, 500);
+        }
+
+        // 商品画像のローテーション（デモ用）
+        const productImages = [
+            { icon: '🍜', name: 'Kuromon Ramen', image: 'media/kuromon.png' },
+            { icon: '🍜', name: 'Men-ya Mufu Ramen', image: 'media/men-ya_mufu.png' },
+            { icon: '🍖', name: 'Narikura Tonkatsu', image: 'media/narikura.png' },
+            { icon: '🍗', name: 'Tori Bien Yakitori', image: 'media/tori_bien.png' },
+            { icon: '🥤', name: 'Soft Drink', image: 'media/soda.jpeg' },
+            { icon: '🍕', name: 'Bodega Pizza', image: 'media/bodega.png' },
+            { icon: '🍜', name: 'Hayato Ramen', image: 'media/ramen_hayato.png' },
+            { icon: '🐙', name: 'Wanaka Takoyaki', image: 'media/wanaka.png' },
+            { icon: '🍢', name: 'Osaka Kushiage', image: 'media/osaka_kushiage.png' }
+        ];
+
+        let currentImageIndex = 0;
+
+        function rotateProductImage() {
+            currentImageIndex = (currentImageIndex + 1) % productImages.length;
+            const showcaseImage = document.getElementById('showcaseImage');
+            const currentProduct = productImages[currentImageIndex];
+            
+            // フェードアウト
+            showcaseImage.style.opacity = '0';
+            showcaseImage.style.transition = 'opacity 0.5s';
+            
+            setTimeout(() => {
+                showcaseImage.src = currentProduct.image;
+                showcaseImage.alt = currentProduct.name;
+                // フェードイン
+                showcaseImage.style.opacity = '1';
+            }, 500);
+        }
+
+        // 10秒ごとに画像を切り替え
+        setInterval(rotateProductImage, 10000);
+
+        // タッチイベントの最適化
+        document.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        // スクリーンセーバーのアイドル検知（オプション）
+        let idleTimer;
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                // 60秒アイドル後の処理（必要に応じて）
+                console.log('Screen saver activated');
+            }, 60000);
+        }
+
+        // マウス移動やタッチでタイマーリセット
+        document.addEventListener('mousemove', resetIdleTimer);
+        document.addEventListener('touchstart', resetIdleTimer);
+        
+        // 初期タイマー設定
+        resetIdleTimer();
+    </script>
+</body>
+</html>

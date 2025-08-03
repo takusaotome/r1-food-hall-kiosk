@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIOSK - Here or To Go</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* CSS変数定義 */
+        :root {
+            --primary-red: #dc3545;
+            --primary-orange: #fd7e14;
+            --primary-green: #28a745;
+            --primary-blue: #007bff;
+            --background-white: #ffffff;
+            --text-dark: #212529;
+            --text-light: #6c757d;
+            --border-gray: #dee2e6;
+        }
+
+        /* ベースレイアウト */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-white);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* KIOSKコンテナ */
+        .kiosk-container {
+            width: 480px;
+            height: 800px;
+            margin: 0 auto;
+            background-color: var(--background-white);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダー */
+        .header {
+            height: 70px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            background-color: var(--background-white);
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .yuu-logo {
+            height: 50px;
+            width: auto;
+        }
+
+        /* メインコンテンツ */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        /* ウェルカムメッセージ */
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            line-height: 1.1;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: var(--text-light);
+        }
+
+        /* 選択ボタンエリア */
+        .selection-area {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        /* 選択ボタン */
+        .selection-button {
+            width: 140px;
+            height: 80px;
+            border: 2px solid var(--text-dark);
+            border-radius: 10px;
+            background-color: var(--background-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .selection-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            background-color: var(--text-dark);
+            color: var(--background-white);
+        }
+
+        .selection-button:active {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ボタンアイコン */
+        .button-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        .here-button .button-icon::after {
+            content: '🍽️';
+        }
+
+        .togo-button .button-icon::after {
+            content: '🥡';
+        }
+
+        /* 説明テキスト */
+        .instruction-text {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-light);
+            font-style: italic;
+            max-width: 300px;
+            line-height: 1.6;
+            animation: fadeIn 1s ease-out 0.5s both;
+        }
+
+        /* フッター */
+        .footer {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .back-button {
+            padding: 8px 20px;
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            background-color: transparent;
+            border: 2px solid var(--primary-blue);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-button:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        /* アニメーション */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* 選択後のビジュアルフィードバック */
+        .selected {
+            background-color: var(--primary-green) !important;
+            color: white !important;
+            border-color: var(--primary-green) !important;
+            transform: scale(0.95);
+        }
+
+        /* ローディングオーバーレイ */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid var(--border-gray);
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* レスポンシブ調整（横向き対応） */
+        @media (orientation: landscape) and (max-height: 1080px) {
+            .kiosk-container {
+                width: 1920px;
+                height: 1080px;
+            }
+
+            .main-content {
+                padding: 40px;
+            }
+
+            .welcome-title {
+                font-size: 48px;
+            }
+
+            .welcome-subtitle {
+                font-size: 24px;
+            }
+
+            .selection-button {
+                width: 250px;
+                height: 120px;
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-logo">
+                <img src="media/yuu_logo.png" alt="YUU Food Hall" class="yuu-logo">
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <!-- ウェルカムメッセージ -->
+            <div class="welcome-section">
+                <h1 class="welcome-title">Welcome!</h1>
+                <p class="welcome-subtitle">Select to begin</p>
+            </div>
+
+            <!-- 選択ボタン -->
+            <div class="selection-area">
+                <button class="selection-button here-button" onclick="selectOption('HERE')">
+                    HERE
+                    <span class="button-icon"></span>
+                </button>
+                <button class="selection-button togo-button" onclick="selectOption('TO_GO')">
+                    TO GO
+                    <span class="button-icon"></span>
+                </button>
+            </div>
+
+        </main>
+
+        <!-- フッター -->
+        <footer class="footer">
+            <a href="kiosk_01_screensaver.html" class="back-button">
+                ← Back
+            </a>
+        </footer>
+    </div>
+
+    <!-- ローディングオーバーレイ -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        // 注文タイプを保存する
+        let orderType = null;
+
+        // 選択処理
+        function selectOption(type) {
+            orderType = type;
+            
+            // ボタンの視覚的フィードバック
+            const button = type === 'HERE' ? 
+                document.querySelector('.here-button') : 
+                document.querySelector('.togo-button');
+            
+            button.classList.add('selected');
+            
+            // サウンドエフェクト（実装時に追加）
+            playSelectSound();
+            
+            // ローディング表示
+            setTimeout(() => {
+                showLoading();
+            }, 200);
+            
+            // 次の画面へ遷移
+            setTimeout(() => {
+                // セッションストレージに保存
+                sessionStorage.setItem('orderType', type);
+                window.location.href = 'kiosk_03_main_menu.html';
+            }, 800);
+        }
+
+        // ローディング表示
+        function showLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.style.display = 'flex';
+            overlay.style.animation = 'fadeIn 0.3s ease-out';
+        }
+
+        // サウンド再生（プレースホルダー）
+        function playSelectSound() {
+            // 実装時にサウンドファイルを追加
+            console.log('Selection sound played');
+        }
+
+        // タッチイベントの最適化
+        document.addEventListener('touchstart', function(e) {
+            // ボタン以外のタッチを無効化
+            if (!e.target.classList.contains('selection-button') && 
+                !e.target.classList.contains('back-button')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // キーボードショートカット（開発用）
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'h' || e.key === 'H') {
+                selectOption('HERE');
+            } else if (e.key === 't' || e.key === 'T') {
+                selectOption('TO_GO');
+            }
+        });
+
+        // ページロード時のアニメーション
+        window.addEventListener('load', function() {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.5s ease-out';
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+
+        // セッション管理
+        function checkSession() {
+            // セッションタイムアウトチェック（30分）
+            const lastActivity = sessionStorage.getItem('lastActivity');
+            const now = new Date().getTime();
+            
+            if (lastActivity && (now - lastActivity > 30 * 60 * 1000)) {
+                sessionStorage.clear();
+                window.location.href = 'kiosk_01_screensaver.html';
+            }
+            
+            sessionStorage.setItem('lastActivity', now);
+        }
+
+        // 初期化
+        checkSession();
+    </script>
+</body>
+</html>

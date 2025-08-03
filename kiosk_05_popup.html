@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIOSK - Upsell Popup</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* CSS変数定義 */
+        :root {
+            --primary-red: #dc3545;
+            --primary-orange: #fd7e14;
+            --primary-green: #28a745;
+            --primary-blue: #007bff;
+            --background-white: #ffffff;
+            --text-dark: #212529;
+            --text-light: #6c757d;
+            --border-gray: #dee2e6;
+        }
+
+        /* ベースレイアウト */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* KIOSKコンテナ */
+        .kiosk-container {
+            width: 480px;
+            height: 800px;
+            margin: 0 auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* オーバーレイ */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 120px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* ポップアップモーダル */
+        .popup-modal {
+            background-color: var(--background-white);
+            border-radius: 10px;
+            width: 350px;
+            max-height: 80vh;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s ease-out;
+            overflow-y: auto;
+        }
+        
+        /* ポップアップヘッダー */
+        .popup-header-logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .popup-yuu-logo {
+            height: 30px;
+            width: auto;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .popup-yuu-logo:hover {
+            transform: scale(1.05);
+        }
+
+        /* ヘッダー */
+        .popup-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .popup-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+
+        .popup-subtitle {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* おすすめ商品エリア */
+        .recommended-products {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        /* 商品カード */
+        .recommend-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            width: 110px;
+        }
+
+        .recommend-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-blue);
+        }
+
+        .recommend-card.selected {
+            border-color: var(--primary-green);
+            background-color: #e8f5e9;
+        }
+
+        .recommend-image {
+            font-size: 32px;
+            margin-bottom: 8px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        .recommend-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .recommend-name {
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: var(--text-dark);
+        }
+
+        .recommend-price {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+
+        /* 説明テキスト */
+        .description-text {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 3px solid var(--primary-blue);
+        }
+
+        .description-title {
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: var(--text-dark);
+        }
+
+        .description-content {
+            font-size: 8px;
+            line-height: 1.5;
+            color: var(--text-light);
+        }
+
+        /* アクションボタン */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .add-selected-btn {
+            padding: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            background-color: var(--primary-orange);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .add-selected-btn:hover {
+            background-color: #e06f0d;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(253, 126, 20, 0.4);
+        }
+
+        .add-selected-btn:disabled {
+            background-color: var(--border-gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .no-thanks-btn {
+            padding: 8px;
+            font-size: 10px;
+            font-weight: bold;
+            color: var(--text-light);
+            background-color: #f8f9fa;
+            border: 2px solid var(--border-gray);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .no-thanks-btn:hover {
+            background-color: var(--border-gray);
+            color: var(--text-dark);
+        }
+
+        /* 選択インジケーター */
+        .selection-indicator {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background-color: var(--primary-green);
+            color: white;
+            border-radius: 50%;
+            width: 15px;
+            height: 15px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+        .recommend-card.selected .selection-indicator {
+            display: flex;
+        }
+
+        /* アニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ローディング状態 */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <div class="overlay" onclick="closePopup()">
+            <div class="popup-modal" onclick="event.stopPropagation()">
+                <!-- ポップアップヘッダーロゴ -->
+                <div class="popup-header-logo">
+                    <img src="media/yuu_logo.png" alt="YUU Food Hall" class="popup-yuu-logo" onclick="goToScreensaver()">
+                </div>
+                
+                <!-- ヘッダー -->
+                <div class="popup-header">
+                    <h2 class="popup-title">Would you like to add?</h2>
+                    <p class="popup-subtitle">Perfect pairings for your order</p>
+                </div>
+
+                <!-- おすすめ商品 -->
+                <div class="recommended-products">
+                    <div class="recommend-card" onclick="selectProduct(1)">
+                        <div class="selection-indicator">✓</div>
+                        <div class="recommend-image">
+                            <img src="media/soda.jpeg" alt="Soft Drink">
+                        </div>
+                        <div class="recommend-name">Soft Drink</div>
+                        <div class="recommend-price">$5</div>
+                    </div>
+                    <div class="recommend-card" onclick="selectProduct(2)">
+                        <div class="selection-indicator">✓</div>
+                        <div class="recommend-image">
+                            <img src="media/bottled_water.png" alt="Bottled Water">
+                        </div>
+                        <div class="recommend-name">Bottled Water</div>
+                        <div class="recommend-price">$3</div>
+                    </div>
+                </div>
+
+
+                <!-- アクションボタン -->
+                <div class="action-buttons">
+                    <button class="add-selected-btn" id="addSelectedBtn" onclick="addSelectedItems()" disabled>
+                        Add Selected Items to Cart
+                    </button>
+                    <button class="no-thanks-btn" onclick="continueWithoutAdding()">
+                        No, Thank you
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 状態管理
+        let selectedProducts = [];
+        let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+        
+        // おすすめ商品データ
+        const recommendedProducts = {
+            1: { id: 5, name: 'Soft Drink', price: 5, icon: '🥤', image: 'media/soda.jpeg' },
+            2: { id: 10, name: 'Bottled Water', price: 3, icon: '💧', image: 'media/bottled_water.png' }
+        };
+
+        // 商品選択
+        function selectProduct(productId) {
+            const card = event.currentTarget;
+            const isSelected = selectedProducts.includes(productId);
+            
+            if (isSelected) {
+                // 選択解除
+                selectedProducts = selectedProducts.filter(id => id !== productId);
+                card.classList.remove('selected');
+            } else {
+                // 選択
+                selectedProducts.push(productId);
+                card.classList.add('selected');
+            }
+            
+            updateAddButton();
+        }
+
+        // 追加ボタンの状態更新
+        function updateAddButton() {
+            const button = document.getElementById('addSelectedBtn');
+            
+            if (selectedProducts.length > 0) {
+                button.disabled = false;
+                const total = selectedProducts.reduce((sum, id) => 
+                    sum + recommendedProducts[id].price, 0);
+                button.textContent = `Add Selected Items ($${total})`;
+            } else {
+                button.disabled = true;
+                button.textContent = 'Add Selected Items to Cart';
+            }
+        }
+
+        // 選択したアイテムをカートに追加
+        function addSelectedItems() {
+            const button = document.getElementById('addSelectedBtn');
+            button.classList.add('loading');
+            
+            // 選択された商品をカートに追加
+            selectedProducts.forEach(productId => {
+                const product = recommendedProducts[productId];
+                const existingItem = cart.find(item => item.id === product.id);
+                
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    cart.push({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        quantity: 1,
+                        icon: product.icon,
+                        image: product.image
+                    });
+                }
+            });
+            
+            // カートを保存
+            sessionStorage.setItem('cart', JSON.stringify(cart));
+            
+            // 少し遅延してから次の画面へ
+            setTimeout(() => {
+                continueToNextScreen();
+            }, 800);
+        }
+
+        // 追加せずに続行
+        function continueWithoutAdding() {
+            continueToNextScreen();
+        }
+
+        // ポップアップを閉じる
+        function closePopup() {
+            continueWithoutAdding();
+        }
+
+        // 次の画面へ
+        function continueToNextScreen() {
+            const overlay = document.querySelector('.overlay');
+            overlay.style.animation = 'fadeOut 0.3s ease-out';
+            overlay.style.opacity = '0';
+            
+            setTimeout(() => {
+                // メインメニューに戻る
+                window.location.href = 'kiosk_03_main_menu.html';
+            }, 300);
+        }
+
+        // キーボードイベント
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePopup();
+            } else if (e.key === 'Enter' && selectedProducts.length > 0) {
+                addSelectedItems();
+            }
+        });
+
+        // 初期化
+        function init() {
+            // アニメーション後にポップアップを表示
+            setTimeout(() => {
+                document.querySelector('.popup-modal').style.animation = 'none';
+            }, 400);
+        }
+
+        // YUUロゴクリックでスクリーンセーバーに戻る
+        function goToScreensaver() {
+            if (confirm('Return to screensaver? Your current cart will be deleted.')) {
+                sessionStorage.clear();
+                window.location.href = 'kiosk_01_screensaver.html';
+            }
+        }
+        
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>

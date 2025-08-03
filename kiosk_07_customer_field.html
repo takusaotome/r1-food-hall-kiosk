@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIOSK - Customer Information</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* CSS変数定義 */
+        :root {
+            --primary-red: #dc3545;
+            --primary-orange: #fd7e14;
+            --primary-green: #28a745;
+            --primary-blue: #007bff;
+            --background-white: #ffffff;
+            --text-dark: #212529;
+            --text-light: #6c757d;
+            --border-gray: #dee2e6;
+            --error-red: #dc3545;
+            --success-green: #28a745;
+        }
+
+        /* ベースレイアウト */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-white);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* KIOSKコンテナ */
+        .kiosk-container {
+            width: 480px;
+            height: 800px;
+            margin: 0 auto;
+            background-color: var(--background-white);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダー */
+        .header {
+            height: 70px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--background-white);
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        .yuu-logo {
+            height: 50px;
+            width: auto;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .yuu-logo:hover {
+            transform: scale(1.05);
+        }
+
+        /* メインコンテンツ */
+        .main-content {
+            flex: 1;
+            padding: 20px 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* フォームコンテナ */
+        .form-container {
+            max-width: 350px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* ヘッダーセクション */
+        .form-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .form-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .form-description {
+            font-size: 12px;
+            color: var(--text-light);
+            line-height: 1.4;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        /* フォーム */
+        .customer-form {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* 入力グループ */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .required-mark {
+            color: var(--error-red);
+            font-size: 15px;
+        }
+
+        .input-field {
+            padding: 12px;
+            font-size: 12px;
+            border: 2px solid var(--border-gray);
+            border-radius: 8px;
+            background-color: white;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            min-height: 40px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+
+        .input-field.valid {
+            border-color: var(--success-green);
+        }
+
+        .input-field.invalid {
+            border-color: var(--error-red);
+        }
+
+        /* エラーメッセージ */
+        .error-message {
+            color: var(--error-red);
+            font-size: 9px;
+            margin-top: 5px;
+            min-height: 18px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .error-message.show {
+            opacity: 1;
+        }
+
+        /* 必須フィールド説明 */
+        .mandatory-note {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 11px;
+            font-style: italic;
+            margin-top: 20px;
+        }
+
+        /* アクションボタン */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 35px;
+        }
+
+        .continue-btn {
+            padding: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            background-color: var(--primary-blue);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .continue-btn:hover:not(:disabled) {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+        }
+
+        .continue-btn:disabled {
+            background-color: var(--border-gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .continue-btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .continue-btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* セカンダリボタン */
+        .secondary-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .cancel-btn, .back-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 10px;
+            border: 2px solid;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            font-weight: bold;
+            background-color: white;
+        }
+
+        .cancel-btn {
+            color: var(--primary-red);
+            border-color: var(--primary-red);
+        }
+
+        .cancel-btn:hover {
+            background-color: var(--primary-red);
+            color: white;
+        }
+
+        .back-btn {
+            color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .back-btn:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        /* フッター情報 */
+        .footer-info {
+            text-align: center;
+            margin-top: 25px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-blue);
+        }
+
+        .footer-text {
+            color: var(--text-light);
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* 電話番号フォーマット表示 */
+        .phone-format {
+            font-size: 9px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        /* アニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        /* 成功状態 */
+        .success-feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--success-green);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            opacity: 0;
+            animation: successPop 2s ease-out;
+        }
+
+        @keyframes successPop {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <img src="media/yuu_logo.png" alt="YUU Food Hall" class="yuu-logo" onclick="goToScreensaver()">
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <div class="form-container">
+                <!-- ヘッダー -->
+                <div class="form-header">
+                    <h1 class="form-title">Get updates on your order</h1>
+                    <p class="form-description">
+                        We'll use this to notify you about your order.<br>
+                        Please note, standard messaging rates apply.
+                    </p>
+                </div>
+
+                <!-- フォーム -->
+                <form class="customer-form" id="customerForm" novalidate>
+                    <!-- 名 -->
+                    <div class="input-group">
+                        <label class="input-label" for="firstName">
+                            First Name<span class="required-mark">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="firstName" 
+                            class="input-field" 
+                            placeholder="Enter your first name"
+                            maxlength="50"
+                            autocomplete="given-name"
+                        >
+                        <div class="error-message" id="firstNameError"></div>
+                    </div>
+
+                    <!-- 姓 -->
+                    <div class="input-group">
+                        <label class="input-label" for="lastName">
+                            Last Name<span class="required-mark">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="lastName" 
+                            class="input-field" 
+                            placeholder="Enter your last name"
+                            maxlength="50"
+                            autocomplete="family-name"
+                        >
+                        <div class="error-message" id="lastNameError"></div>
+                    </div>
+
+                    <!-- 電話番号 -->
+                    <div class="input-group">
+                        <label class="input-label" for="phoneNumber">
+                            Phone Number<span class="required-mark">*</span>
+                        </label>
+                        <input 
+                            type="tel" 
+                            id="phoneNumber" 
+                            class="input-field" 
+                            placeholder="(123) 456-7890"
+                            maxlength="14"
+                            autocomplete="tel"
+                        >
+                        <div class="error-message" id="phoneNumberError"></div>
+                    </div>
+
+                    <!-- 必須フィールド説明 -->
+                    <div class="mandatory-note">
+                        <span class="required-mark">*</span>Mandatory Fields
+                    </div>
+
+                    <!-- アクションボタン -->
+                    <div class="action-buttons">
+                        <button type="submit" class="continue-btn" id="continueBtn" disabled>
+                            Continue
+                        </button>
+                        <div class="secondary-buttons">
+                            <button type="button" class="cancel-btn" onclick="cancelOrder()">Cancel All</button>
+                            <a href="kiosk_06_order_summary.html" class="back-btn">Back to menu</a>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // バリデーションルール
+        const validation = {
+            firstName: {
+                required: true,
+                minLength: 2,
+                pattern: /^[a-zA-Z\s\-']+$/,
+                message: 'First name should contain only letters, spaces, hyphens, and apostrophes'
+            },
+            lastName: {
+                required: true,
+                minLength: 2,
+                pattern: /^[a-zA-Z\s\-']+$/,
+                message: 'Last name should contain only letters, spaces, hyphens, and apostrophes'
+            },
+            phoneNumber: {
+                required: true,
+                pattern: /^\(\d{3}\) \d{3}-\d{4}$/,
+                message: 'Please enter a valid phone number in format (123) 456-7890'
+            }
+        };
+
+        // 状態管理
+        let isSubmitting = false;
+
+        // 初期化
+        function init() {
+            setupEventListeners();
+            focusFirstField();
+        }
+
+        // イベントリスナー設定
+        function setupEventListeners() {
+            const form = document.getElementById('customerForm');
+            const fields = ['firstName', 'lastName', 'phoneNumber'];
+
+            // フォーム送信
+            form.addEventListener('submit', handleSubmit);
+
+            // 各フィールドのイベント
+            fields.forEach(fieldName => {
+                const field = document.getElementById(fieldName);
+                
+                field.addEventListener('input', () => {
+                    if (fieldName === 'phoneNumber') {
+                        formatPhoneNumber(field);
+                    }
+                    validateField(fieldName);
+                    updateContinueButton();
+                });
+
+                field.addEventListener('blur', () => {
+                    validateField(fieldName);
+                });
+
+                field.addEventListener('focus', () => {
+                    clearFieldError(fieldName);
+                });
+            });
+        }
+
+        // 電話番号フォーマット
+        function formatPhoneNumber(field) {
+            let value = field.value.replace(/\D/g, '');
+            
+            if (value.length >= 6) {
+                value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
+            } else if (value.length >= 3) {
+                value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+            }
+            
+            field.value = value;
+        }
+
+        // フィールドバリデーション
+        function validateField(fieldName) {
+            const field = document.getElementById(fieldName);
+            const rule = validation[fieldName];
+            const value = field.value.trim();
+
+            // 必須チェック
+            if (rule.required && !value) {
+                setFieldError(fieldName, `${getFieldLabel(fieldName)} is required`);
+                return false;
+            }
+
+            // 最小長チェック
+            if (rule.minLength && value.length < rule.minLength) {
+                setFieldError(fieldName, `${getFieldLabel(fieldName)} must be at least ${rule.minLength} characters`);
+                return false;
+            }
+
+            // パターンチェック
+            if (rule.pattern && value && !rule.pattern.test(value)) {
+                setFieldError(fieldName, rule.message);
+                return false;
+            }
+
+            // バリデーション成功
+            setFieldValid(fieldName);
+            return true;
+        }
+
+        // フィールドラベル取得
+        function getFieldLabel(fieldName) {
+            const labels = {
+                firstName: 'First Name',
+                lastName: 'Last Name',
+                phoneNumber: 'Phone Number'
+            };
+            return labels[fieldName];
+        }
+
+        // エラー設定
+        function setFieldError(fieldName, message) {
+            const field = document.getElementById(fieldName);
+            const errorEl = document.getElementById(`${fieldName}Error`);
+            
+            field.classList.remove('valid');
+            field.classList.add('invalid');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+
+        // エラークリア
+        function clearFieldError(fieldName) {
+            const field = document.getElementById(fieldName);
+            const errorEl = document.getElementById(`${fieldName}Error`);
+            
+            field.classList.remove('invalid');
+            errorEl.classList.remove('show');
+        }
+
+        // バリデーション成功設定
+        function setFieldValid(fieldName) {
+            const field = document.getElementById(fieldName);
+            const errorEl = document.getElementById(`${fieldName}Error`);
+            
+            field.classList.remove('invalid');
+            field.classList.add('valid');
+            errorEl.classList.remove('show');
+        }
+
+        // 続行ボタン状態更新
+        function updateContinueButton() {
+            const continueBtn = document.getElementById('continueBtn');
+            const allValid = ['firstName', 'lastName', 'phoneNumber'].every(validateField);
+            
+            continueBtn.disabled = !allValid || isSubmitting;
+        }
+
+        // フォーム送信処理
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            if (isSubmitting) return;
+            
+            // 全フィールドバリデーション
+            const allValid = ['firstName', 'lastName', 'phoneNumber'].every(validateField);
+            
+            if (!allValid) {
+                // バリデーションエラーがあればシェイク
+                document.querySelector('.form-container').classList.add('shake');
+                setTimeout(() => {
+                    document.querySelector('.form-container').classList.remove('shake');
+                }, 500);
+                return;
+            }
+
+            // 顧客情報を保存して決済処理へ
+            submitCustomerInfo();
+        }
+
+        // 顧客情報送信
+        function submitCustomerInfo() {
+            isSubmitting = true;
+            const continueBtn = document.getElementById('continueBtn');
+            continueBtn.classList.add('loading');
+            continueBtn.textContent = 'Processing...';
+
+            // 顧客情報を収集
+            const customerInfo = {
+                firstName: document.getElementById('firstName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim(),
+                phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                orderType: sessionStorage.getItem('orderType') || 'HERE',
+                timestamp: new Date().toISOString()
+            };
+
+            // セッションストレージに保存
+            sessionStorage.setItem('customerInfo', JSON.stringify(customerInfo));
+
+            // 成功フィードバック表示
+            setTimeout(() => {
+                showSuccessFeedback();
+                
+                // 決済処理画面へ遷移（または注文完了）
+                setTimeout(() => {
+                    completeOrder();
+                }, 1500);
+            }, 1000);
+        }
+
+        // 成功フィードバック表示
+        function showSuccessFeedback() {
+            const feedback = document.createElement('div');
+            feedback.className = 'success-feedback';
+            feedback.textContent = '✓ Information Saved!';
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => {
+                document.body.removeChild(feedback);
+            }, 2000);
+        }
+
+        // 注文完了処理
+        function completeOrder() {
+            const cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+            const customerInfo = JSON.parse(sessionStorage.getItem('customerInfo'));
+            
+            // 注文完了情報をまとめる
+            const orderSummary = {
+                orderId: 'ORD-' + Date.now(),
+                items: cart,
+                customer: customerInfo,
+                subtotal: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                tax: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.08875,
+                completedAt: new Date().toISOString()
+            };
+
+            // 最終的な注文情報を保存
+            sessionStorage.setItem('completedOrder', JSON.stringify(orderSummary));
+            
+            // カートをクリア
+            sessionStorage.removeItem('cart');
+            
+            // 注文完了メッセージを表示してスクリーンセーバーに戻る
+            alert(`Thank you ${customerInfo.firstName}! Your order has been placed. You will receive SMS updates at ${customerInfo.phoneNumber}.`);
+            
+            // スクリーンセーバーに戻る
+            window.location.href = 'kiosk_01_screensaver.html';
+        }
+
+        // 注文キャンセル
+        function cancelOrder() {
+            if (confirm('Are you sure you want to cancel your entire order?')) {
+                sessionStorage.clear();
+                window.location.href = 'kiosk_01_screensaver.html';
+            }
+        }
+
+        // 最初のフィールドにフォーカス
+        function focusFirstField() {
+            setTimeout(() => {
+                document.getElementById('firstName').focus();
+            }, 500);
+        }
+
+        // キーボードイベント
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                cancelOrder();
+            } else if (e.key === 'Enter' && !document.getElementById('continueBtn').disabled) {
+                document.getElementById('customerForm').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // YUUロゴクリックでスクリーンセーバーに戻る
+        function goToScreensaver() {
+            if (confirm('Return to screensaver? Your input information will be deleted.')) {
+                sessionStorage.clear();
+                window.location.href = 'kiosk_01_screensaver.html';
+            }
+        }
+        
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>

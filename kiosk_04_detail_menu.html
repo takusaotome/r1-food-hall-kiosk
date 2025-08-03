@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIOSK - Product Detail</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* CSS変数定義 */
+        :root {
+            --primary-red: #dc3545;
+            --primary-orange: #fd7e14;
+            --primary-green: #28a745;
+            --primary-blue: #007bff;
+            --background-white: #ffffff;
+            --text-dark: #212529;
+            --text-light: #6c757d;
+            --border-gray: #dee2e6;
+        }
+
+        /* ベースレイアウト */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-white);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* KIOSKコンテナ */
+        .kiosk-container {
+            width: 480px;
+            height: 800px;
+            margin: 0 auto;
+            background-color: var(--background-white);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダー */
+        .header {
+            height: 70px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--background-white);
+            border-bottom: 2px solid var(--border-gray);
+        }
+        
+        .header-logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .yuu-logo {
+            height: 50px;
+            width: auto;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .yuu-logo:hover {
+            transform: scale(1.05);
+        }
+
+        /* ショッピングカート */
+        .shopping-cart {
+            position: relative;
+            cursor: pointer;
+            padding: 8px;
+            margin: 2px;
+            transition: transform 0.2s;
+        }
+
+        .shopping-cart:hover {
+            transform: scale(1.1);
+        }
+
+        .cart-icon {
+            font-size: 16px;
+            color: var(--primary-red);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background-color: var(--primary-red);
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+        /* メインコンテンツ */
+        .main-content {
+            flex: 1;
+            padding: 8px;
+            overflow-y: auto;
+        }
+
+        /* 商品詳細レイアウト */
+        .product-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* 商品画像 */
+        .product-image-container {
+            position: relative;
+            align-self: center;
+        }
+
+        .product-image-large {
+            width: 200px;
+            height: 150px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 45px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-image-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        /* 商品情報 */
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .product-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-dark);
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        /* アレルギー情報 */
+        .allergen-alert {
+            background-color: #fee;
+            border: 1px solid var(--primary-red);
+            border-radius: 4px;
+            padding: 6px;
+        }
+
+        .allergen-title {
+            color: var(--primary-red);
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .allergen-text {
+            color: var(--text-dark);
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
+        /* カロリー表示 */
+        .calories-info {
+            background-color: #f8f9fa;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* 商品説明 */
+        .description-section {
+            border-top: 1px solid var(--border-gray);
+            padding-top: 6px;
+        }
+
+        .description-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+
+        .description-text {
+            font-size: 13px;
+            line-height: 1.4;
+            color: var(--text-light);
+        }
+
+        /* 数量選択 */
+        .quantity-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 0;
+        }
+
+        .quantity-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .quantity-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--primary-blue);
+            border-radius: 4px;
+            background-color: white;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quantity-btn:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .quantity-btn:active {
+            transform: scale(0.95);
+        }
+
+        .quantity-display {
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        /* アクションボタン */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .add-to-cart-btn {
+            padding: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            background-color: var(--primary-orange);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .add-to-cart-btn:hover {
+            background-color: #e06f0d;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(253, 126, 20, 0.4);
+        }
+
+        .add-to-cart-btn:active {
+            transform: translateY(0);
+        }
+
+        .back-link {
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            background-color: transparent;
+            border: 1px solid var(--primary-blue);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            padding: 8px 12px;
+            display: inline-block;
+        }
+
+        .back-link:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        /* 価格表示 */
+        .price-display {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--primary-green);
+            text-align: center;
+            margin-top: 6px;
+        }
+
+        /* アニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .product-detail {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-logo">
+                <img src="media/yuu_logo.png" alt="YUU Food Hall" class="yuu-logo" onclick="goToScreensaver()">
+            </div>
+            <div class="shopping-cart" onclick="goToOrderSummary()">
+                <span class="cart-icon">🛒</span>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <div class="product-detail">
+                <!-- 商品画像 -->
+                <div class="product-image-container">
+                    <div class="product-image-large" id="productImage">
+                        🍜
+                    </div>
+                </div>
+
+                <!-- 商品情報 -->
+                <div class="product-info">
+                    <h1 class="product-title" id="productName">Kuromon Ramen Large</h1>
+
+                    <!-- アレルギー情報 -->
+                    <div class="allergen-alert">
+                        <div class="allergen-title">Allergen Alert</div>
+                        <div class="allergen-text">
+                            Wheat (ramen noodles, soy sauce)<br>
+                            Egg (noodles, marinated egg)<br>
+                            Sesame (may be used as oil or garnish)<br>
+                            This dish contains pork bone broth, black garlic oil, wood ear mushrooms,<br>
+                            scallions, and thin straight noodles.
+                        </div>
+                    </div>
+
+                    <!-- カロリー情報 -->
+                    <div class="calories-info">
+                        Calories: <span id="caloriesDisplay">900</span> kcal
+                    </div>
+
+                    <!-- 商品説明 -->
+                    <div class="description-section">
+                        <div class="description-title">Description</div>
+                        <div class="description-text" id="productDescription">
+                            A rich and creamy pork bone broth simmered for hours to achieve<br>
+                            deep umami flavor. Served with tender chashu pork belly, marinated soft-boiled egg (ajitama),<br>
+                            black garlic oil, wood ear mushrooms, scallions, and thin straight noodles.<br>
+                            A history-style broth, that's bold, hearty, and unforgettable.
+                        </div>
+                    </div>
+
+                    <!-- 数量選択 -->
+                    <div class="quantity-section">
+                        <span class="quantity-label">Quantity:</span>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="decreaseQuantity()">−</button>
+                            <span class="quantity-display" id="quantityDisplay">1</span>
+                            <button class="quantity-btn" onclick="increaseQuantity()">+</button>
+                        </div>
+                    </div>
+
+                    <!-- 価格表示 -->
+                    <div class="price-display">
+                        $<span id="priceDisplay">36</span>
+                    </div>
+
+                    <!-- アクションボタン -->
+                    <div class="action-buttons">
+                        <button class="add-to-cart-btn" onclick="addToCart()">Add to cart</button>
+                        <a href="kiosk_03_main_menu.html" class="back-link">Back to menu</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 商品データ
+        const products = {
+            1: { name: 'Kuromon Ramen Large', icon: '🍜', image: 'media/kuromon.png', price: 36, calories: 900, description: 'A rich and creamy pork bone broth simmered for hours to achieve deep umami flavor with tender chashu and fresh noodles.' },
+            2: { name: 'Men-ya Mufu Ramen', icon: '🍜', image: 'media/men-ya_mufu.png', price: 18, calories: 650, description: 'Traditional ramen with miso-based broth, bamboo shoots, and perfectly cooked noodles.' },
+            3: { name: 'Tori Bien Yakitori', icon: '🍗', image: 'media/tori_bien.png', price: 16, calories: 480, description: 'Grilled chicken skewers with tare sauce, perfectly charred and juicy.' },
+            4: { name: 'Narikura Tonkatsu', icon: '🍖', image: 'media/narikura.png', price: 28, calories: 820, description: 'Crispy breaded pork cutlet served with shredded cabbage and tonkatsu sauce.' },
+            5: { name: 'Soft Drink', icon: '🥤', image: 'media/soda.jpeg', price: 5, calories: 150, description: 'Refreshing carbonated beverage with your choice of flavor.' },
+            6: { name: 'Bodega Pizza Margherita', icon: '🍕', image: 'media/bodega.png', price: 22, calories: 450, description: 'Classic wood-fired pizza with fresh mozzarella, tomato sauce, and basil.' },
+            7: { name: 'Hayato Ramen Special', icon: '🍜', image: 'media/ramen_hayato.png', price: 24, calories: 720, description: 'Signature ramen with rich tonkotsu broth, chashu pork, and house-made noodles.' },
+            8: { name: 'Wanaka Takoyaki', icon: '🐙', image: 'media/wanaka.png', price: 12, calories: 320, description: 'Osaka-style octopus balls with takoyaki sauce, mayonnaise, and bonito flakes.' },
+            9: { name: 'Osaka Kushiage Set', icon: '🍢', image: 'media/osaka_kushiage.png', price: 20, calories: 580, description: 'Assorted deep-fried skewers with vegetables and meat, served with tonkatsu sauce.' }
+        };
+
+        // 状態管理
+        let currentProduct = null;
+        let quantity = 1;
+        let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+
+        // 初期化
+        function init() {
+            const productId = sessionStorage.getItem('selectedProductId');
+            if (!productId || !products[productId]) {
+                window.location.href = 'kiosk_03_main_menu.html';
+                return;
+            }
+            
+            currentProduct = products[productId];
+            currentProduct.id = parseInt(productId);
+            
+            // 商品情報を表示
+            const productImageElement = document.getElementById('productImage');
+            if (currentProduct.image) {
+                productImageElement.innerHTML = `<img src="${currentProduct.image}" alt="${currentProduct.name}">`;
+            } else {
+                productImageElement.textContent = currentProduct.icon;
+            }
+            document.getElementById('productName').textContent = currentProduct.name;
+            document.getElementById('caloriesDisplay').textContent = currentProduct.calories;
+            document.getElementById('productDescription').textContent = currentProduct.description;
+            document.getElementById('priceDisplay').textContent = currentProduct.price;
+            
+            updateCartBadge();
+        }
+
+        // 数量増減
+        function increaseQuantity() {
+            if (quantity < 10) {
+                quantity++;
+                updateQuantityDisplay();
+            }
+        }
+
+        function decreaseQuantity() {
+            if (quantity > 1) {
+                quantity--;
+                updateQuantityDisplay();
+            }
+        }
+
+        function updateQuantityDisplay() {
+            document.getElementById('quantityDisplay').textContent = quantity;
+            document.getElementById('priceDisplay').textContent = currentProduct.price * quantity;
+        }
+
+        // カートに追加
+        function addToCart() {
+            const existingItem = cart.find(item => item.id === currentProduct.id);
+            
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({
+                    id: currentProduct.id,
+                    name: currentProduct.name,
+                    price: currentProduct.price,
+                    quantity: quantity,
+                    icon: currentProduct.icon,
+                    image: currentProduct.image
+                });
+            }
+            
+            sessionStorage.setItem('cart', JSON.stringify(cart));
+            
+            // アップセルポップアップを表示
+            showUpsellPopup();
+        }
+
+        // アップセルポップアップ表示
+        function showUpsellPopup() {
+            // ポップアップ画面へ遷移
+            sessionStorage.setItem('fromProductId', currentProduct.id);
+            window.location.href = 'kiosk_05_popup.html';
+        }
+
+        // 注文サマリーへ
+        function goToOrderSummary() {
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            window.location.href = 'kiosk_06_order_summary.html';
+        }
+
+        // カートバッジ更新
+        function updateCartBadge() {
+            const badge = document.getElementById('cartBadge');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            badge.textContent = totalItems;
+            badge.style.display = totalItems > 0 ? 'flex' : 'none';
+        }
+
+        // YUUロゴクリックでスクリーンセーバーに戻る
+        function goToScreensaver() {
+            if (confirm('Return to screensaver? Your current product selection will be cancelled.')) {
+                sessionStorage.clear();
+                window.location.href = 'kiosk_01_screensaver.html';
+            }
+        }
+        
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>

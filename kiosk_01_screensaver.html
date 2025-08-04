@@ -334,10 +334,7 @@
         // 10秒ごとに画像を切り替え
         setInterval(rotateProductImage, 10000);
 
-        // タッチイベントの最適化
-        document.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-        }, { passive: false });
+
 
         // スクリーンセーバーのアイドル検知（オプション）
         let idleTimer;

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ROUND1 Food Hall - Order Type</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* CSS変数定義 */
+        :root {
+            --primary-red: #e60012;
+            --secondary-red: #d01324;
+            --primary-orange: #fd7e14;
+            --primary-green: #28a745;
+            --primary-blue: #007bff;
+            --background-white: #ffffff;
+            --background-cream: #faf7f0;
+            --text-dark: #212529;
+            --text-light: #6c757d;
+            --border-gray: #dee2e6;
+        }
+
+        /* ベースレイアウト */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* メインコンテナ */
+        .mobile-container {
+            width: 100%;
+            height: 100vh;
+            background-color: var(--background-white);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* スクリーンセーバー */
+        .screensaver {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            padding: 60px 20px 40px;
+            background: linear-gradient(180deg, #ffffff 0%, #faf7f0 100%);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        /* ロゴエリア */
+        .logo-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .yuu-logo {
+            width: 150px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .yuu-logo img {
+            height: 100%;
+            width: auto;
+        }
+
+        .food-hall-text {
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--text-dark);
+            letter-spacing: 3px;
+        }
+
+        /* メインコンテンツ */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        /* 商品ショーケース */
+        .product-showcase {
+            width: 280px;
+            height: 280px;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .showcase-card {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            transform-style: preserve-3d;
+            transition: all 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            opacity: 0;
+        }
+
+        .showcase-card.active {
+            opacity: 1;
+            transform: rotateY(0deg) scale(1);
+        }
+
+        .showcase-card.next {
+            transform: rotateY(90deg) scale(0.8);
+        }
+
+        .tenant-logo-showcase {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .tenant-logo-showcase img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        .product-image-showcase {
+            flex: 1;
+            border-radius: 15px;
+            overflow: hidden;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-image-showcase img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-name-showcase {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-align: center;
+        }
+
+        .product-price-showcase {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-green);
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* CTAエリア */
+        .cta-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .start-button {
+            width: 80%;
+            max-width: 300px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--secondary-red) 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(230, 0, 18, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        .start-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(230, 0, 18, 0.4);
+        }
+
+        .tap-hint {
+            font-size: 14px;
+            color: var(--text-light);
+            animation: fadeInOut 3s infinite;
+        }
+
+        /* アニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-height: 700px) {
+            .screensaver {
+                padding: 40px 20px 30px;
+            }
+            
+            .product-showcase {
+                width: 240px;
+                height: 240px;
+            }
+            
+            .yuu-logo {
+                width: 120px;
+                height: 50px;
+            }
+            
+            .food-hall-text {
+                font-size: 24px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .mobile-container {
+                max-width: 480px;
+                margin: 0 auto;
+                box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container" onclick="goToNextScreen()">
+        <div class="screensaver">
+            <!-- ロゴエリア -->
+            <div class="logo-area">
+                <div class="yuu-logo">
+                    <img src="media/yuu_logo.png" alt="YUU">
+                </div>
+                <div class="food-hall-text">FOOD HALL</div>
+            </div>
+
+            <!-- メインコンテンツ -->
+            <div class="main-content">
+                <div class="product-showcase">
+                    <div class="showcase-card active" id="showcaseCard">
+                        <div class="tenant-logo-showcase">
+                            <img src="media/kuromon_logo.png" alt="Kuromon" id="tenantLogo">
+                        </div>
+                        <div class="product-image-showcase">
+                            <img src="media/kuromon.png" alt="Product" id="productImage">
+                        </div>
+                        <div class="product-name-showcase" id="productName">Kuromon Ramen</div>
+                        <div class="product-price-showcase" id="productPrice">$36</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTAエリア -->
+            <div class="cta-area">
+                <button class="start-button">START ORDER</button>
+                <div class="tap-hint">Tap anywhere to begin</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 商品データ
+        const showcaseProducts = [
+            { name: 'Kuromon Ramen', price: '$36', image: 'media/kuromon.png', logo: 'media/kuromon_logo.png' },
+            { name: 'Men-ya Mufu Special', price: '$18', image: 'media/men-ya_mufu.png', logo: 'media/men-ya_mufu_logo.png' },
+            { name: 'Tori Bien Yakitori Set', price: '$16', image: 'media/tori_bien.png', logo: 'media/tori_bien_logo.png' },
+            { name: 'Narikura Tonkatsu', price: '$28', image: 'media/narikura.png', logo: 'media/narikura_logo.png' },
+            { name: 'Bodega Pizza', price: '$22', image: 'media/bodega.png', logo: 'media/bodega_logo.png' },
+            { name: 'Hayato Ramen', price: '$24', image: 'media/ramen_hayato.png', logo: 'media/ramen_hayato_logo.png' },
+            { name: 'Wanaka Takoyaki', price: '$12', image: 'media/wanaka.png', logo: 'media/wanaka_log.png' },
+            { name: 'Osaka Kushiage', price: '$20', image: 'media/osaka_kushiage.png', logo: 'media/osaka_kushiage_logo.png' }
+        ];
+
+        let currentIndex = 0;
+
+        // 商品ローテーション
+        function rotateProduct() {
+            currentIndex = (currentIndex + 1) % showcaseProducts.length;
+            const card = document.getElementById('showcaseCard');
+            const product = showcaseProducts[currentIndex];
+            
+            // フェードアウト
+            card.classList.remove('active');
+            card.classList.add('next');
+            
+            setTimeout(() => {
+                // 内容更新
+                document.getElementById('tenantLogo').src = product.logo;
+                document.getElementById('productImage').src = product.image;
+                document.getElementById('productName').textContent = product.name;
+                document.getElementById('productPrice').textContent = product.price;
+                
+                // フェードイン
+                card.classList.remove('next');
+                card.classList.add('active');
+            }, 300);
+        }
+
+        // 8秒ごとに商品切り替え
+        setInterval(rotateProduct, 8000);
+
+        // 次の画面へ
+        function goToNextScreen() {
+            // ハプティックフィードバック（対応デバイスのみ）
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(10);
+            }
+            
+            // 画面遷移
+            window.location.href = 'mobile_02_here_or_togo.html';
+        }
+
+        // タッチイベント最適化
+        document.addEventListener('touchstart', function(e) {
+            if (e.target.classList.contains('start-button')) {
+                e.target.style.transform = 'scale(0.95)';
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(e) {
+            if (e.target.classList.contains('start-button')) {
+                e.target.style.transform = 'scale(1)';
+            }
+        }, { passive: true });
+
+        // PWA対応
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // Service Worker登録（実装時）
+                console.log('PWA ready');
+            });
+        }
+    </script>
+</body>
+</html>

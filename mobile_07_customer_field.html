@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ROUND1 Food Hall - Customer Info</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* CSS変数定義 */
+        :root {
+            --primary-red: #e60012;
+            --secondary-red: #d01324;
+            --primary-orange: #fd7e14;
+            --primary-green: #28a745;
+            --primary-blue: #007bff;
+            --background-white: #ffffff;
+            --background-cream: #faf7f0;
+            --text-dark: #212529;
+            --text-light: #6c757d;
+            --border-gray: #dee2e6;
+            --error-red: #dc3545;
+            --success-green: #28a745;
+        }
+
+        /* ベースレイアウト */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(180deg, #ffffff 0%, #faf7f0 100%);
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            min-height: 100vh;
+        }
+
+        /* メインコンテナ */
+        .mobile-container {
+            width: 100%;
+            min-height: 100vh;
+            background-color: transparent;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダー */
+        .header {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+        }
+
+        .back-button {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border: 2px solid var(--border-gray);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:active {
+            transform: scale(0.9);
+        }
+
+        .yuu-logo {
+            width: 80px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .yuu-logo img {
+            height: 100%;
+            width: auto;
+        }
+
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-step {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--border-gray);
+        }
+
+        .progress-step.active {
+            background-color: var(--primary-red);
+        }
+
+        .progress-step.completed {
+            background-color: var(--primary-green);
+        }
+
+        /* メインコンテンツ */
+        .main-content {
+            flex: 1;
+            padding: 30px 20px;
+            padding-bottom: 120px;
+        }
+
+        /* フォームヘッダー */
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .form-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .form-subtitle {
+            font-size: 16px;
+            color: var(--text-light);
+            line-height: 1.5;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        /* 注文サマリー */
+        .order-summary-mini {
+            background-color: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .summary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .summary-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .summary-total {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+
+        .summary-items {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .order-type-indicator {
+            display: inline-block;
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        /* フォーム */
+        .customer-form {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .required-indicator {
+            color: var(--error-red);
+            font-size: 18px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            border: 2px solid var(--border-gray);
+            border-radius: 15px;
+            background-color: white;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            background-color: #f8f9ff;
+            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+        }
+
+        .input-field.valid {
+            border-color: var(--success-green);
+            background-color: #f8fff9;
+        }
+
+        .input-field.invalid {
+            border-color: var(--error-red);
+            background-color: #fff8f8;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .input-field::placeholder {
+            color: var(--text-light);
+        }
+
+        /* エラーメッセージ */
+        .error-message {
+            color: var(--error-red);
+            font-size: 14px;
+            margin-top: 5px;
+            min-height: 20px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .error-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .error-icon {
+            font-size: 16px;
+        }
+
+        /* 入力ヒント */
+        .input-hint {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        /* SMS同意チェックボックス */
+        .consent-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .consent-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .consent-checkbox:active {
+            transform: scale(0.98);
+        }
+
+        .checkbox-input {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .checkbox-input::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-gray);
+            border-radius: 4px;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-input:checked::before {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .checkbox-input:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .consent-text {
+            font-size: 14px;
+            color: var(--text-dark);
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .consent-highlight {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        /* 必須フィールド説明 */
+        .required-note {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-light);
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        /* 続行ボタン */
+        .continue-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            padding: 20px;
+            border-top: 1px solid var(--border-gray);
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .continue-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--secondary-red) 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(230, 0, 18, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .continue-btn:active {
+            transform: scale(0.98);
+        }
+
+        .continue-btn:disabled {
+            background: linear-gradient(135deg, var(--border-gray) 0%, #adb5bd 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .continue-btn.loading {
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        .continue-btn.loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* キャンセルボタン */
+        .cancel-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: transparent;
+            color: var(--text-light);
+            border: 2px solid var(--border-gray);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .cancel-btn:active {
+            transform: scale(0.98);
+            background-color: var(--background-cream);
+        }
+
+        /* アニメーション */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+            20%, 40%, 60%, 80% { transform: translateX(3px); }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .input-field.success {
+            animation: success 0.3s ease-out;
+        }
+
+        /* 成功フィードバック */
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.95) 0%, rgba(32, 201, 151, 0.95) 100%);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            color: white;
+            text-align: center;
+        }
+
+        .success-content {
+            animation: successPop 1.5s ease-out;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .success-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        @keyframes successPop {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-height: 700px) {
+            .main-content {
+                padding: 20px;
+                padding-bottom: 100px;
+            }
+            
+            .form-title {
+                font-size: 24px;
+            }
+            
+            .customer-form {
+                gap: 20px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .mobile-container {
+                max-width: 480px;
+                margin: 0 auto;
+                box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-content">
+                <div class="back-button" onclick="goBack()">
+                    <span>←</span>
+                </div>
+                <div class="yuu-logo">
+                    <img src="media/yuu_logo.png" alt="YUU">
+                </div>
+                <div class="progress-indicator">
+                    <div class="progress-step completed"></div>
+                    <div class="progress-step completed"></div>
+                    <div class="progress-step active"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <!-- フォームヘッダー -->
+            <div class="form-header">
+                <h1 class="form-title">Almost there!</h1>
+                <p class="form-subtitle">
+                    We'll send you SMS updates about your order preparation and pickup status
+                </p>
+            </div>
+
+            <!-- 注文サマリー -->
+            <div class="order-summary-mini">
+                <div class="summary-header">
+                    <span class="summary-title">Your Order</span>
+                    <span class="summary-total" id="orderTotal">$0.00</span>
+                </div>
+                <div class="summary-items" id="orderItems">
+                    0 items
+                    <span class="order-type-indicator" id="orderTypeIndicator">DINE IN</span>
+                </div>
+            </div>
+
+            <!-- 顧客情報フォーム -->
+            <form class="customer-form" id="customerForm" novalidate>
+                <!-- 名前 -->
+                <div class="input-group">
+                    <label class="input-label" for="firstName">
+                        First Name
+                        <span class="required-indicator">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="firstName" 
+                        class="input-field" 
+                        placeholder="Enter your first name"
+                        maxlength="30"
+                        autocomplete="given-name"
+                        autocapitalize="words"
+                    >
+                    <div class="error-message" id="firstNameError">
+                        <span class="error-icon">⚠️</span>
+                        <span></span>
+                    </div>
+                </div>
+
+                <!-- 姓 -->
+                <div class="input-group">
+                    <label class="input-label" for="lastName">
+                        Last Name
+                        <span class="required-indicator">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="lastName" 
+                        class="input-field" 
+                        placeholder="Enter your last name"
+                        maxlength="30"
+                        autocomplete="family-name"
+                        autocapitalize="words"
+                    >
+                    <div class="error-message" id="lastNameError">
+                        <span class="error-icon">⚠️</span>
+                        <span></span>
+                    </div>
+                </div>
+
+                <!-- 電話番号 -->
+                <div class="input-group">
+                    <label class="input-label" for="phoneNumber">
+                        Phone Number
+                        <span class="required-indicator">*</span>
+                    </label>
+                    <input 
+                        type="tel" 
+                        id="phoneNumber" 
+                        class="input-field" 
+                        placeholder="(000) 000-0000"
+                        maxlength="14"
+                        autocomplete="tel"
+                        inputmode="numeric"
+                    >
+                    <div class="input-hint">We'll send SMS updates about your order</div>
+                    <div class="error-message" id="phoneNumberError">
+                        <span class="error-icon">⚠️</span>
+                        <span></span>
+                    </div>
+                </div>
+
+                <!-- SMS同意 -->
+                <div class="consent-section">
+                    <label class="consent-checkbox" for="smsConsent">
+                        <input type="checkbox" id="smsConsent" class="checkbox-input" required>
+                        <div class="consent-text">
+                            I agree to receive <span class="consent-highlight">SMS notifications</span> about my order status. 
+                            Standard messaging rates may apply. You can opt out at any time.
+                        </div>
+                    </label>
+                </div>
+
+                <!-- 必須フィールド説明 -->
+                <div class="required-note">
+                    <span class="required-indicator">*</span> Required fields
+                </div>
+            </form>
+        </main>
+
+        <!-- 続行ボタンセクション -->
+        <div class="continue-section">
+            <button type="button" class="cancel-btn" onclick="cancelOrder()">Cancel Order</button>
+            <button type="submit" class="continue-btn" id="continueBtn" onclick="handleSubmit()" disabled>
+                <span>Complete Order</span>
+            </button>
+        </div>
+
+        <!-- 成功オーバーレイ -->
+        <div class="success-overlay" id="successOverlay">
+            <div class="success-content">
+                <div class="success-icon">✅</div>
+                <div class="success-title">Order Placed!</div>
+                <div class="success-message">You'll receive SMS updates shortly</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // バリデーションルール
+        const validation = {
+            firstName: {
+                required: true,
+                minLength: 2,
+                pattern: /^[a-zA-Z\s\-']+$/,
+                message: 'First name should contain only letters, spaces, hyphens, and apostrophes'
+            },
+            lastName: {
+                required: true,
+                minLength: 2,
+                pattern: /^[a-zA-Z\s\-']+$/,
+                message: 'Last name should contain only letters, spaces, hyphens, and apostrophes'
+            },
+            phoneNumber: {
+                required: true,
+                pattern: /^\(\d{3}\) \d{3}-\d{4}$/,
+                message: 'Please enter a valid phone number'
+            }
+        };
+
+        // 状態管理
+        let isSubmitting = false;
+        let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+
+        // 初期化
+        function init() {
+            loadOrderSummary();
+            setupEventListeners();
+            focusFirstField();
+            updateContinueButton();
+        }
+
+        // 注文サマリー読み込み
+        function loadOrderSummary() {
+            const orderType = sessionStorage.getItem('orderType') || 'HERE';
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const savings = cart.reduce((sum, item) => {
+                if (item.isComboItem && item.originalPrice) {
+                    return sum + ((item.originalPrice - item.price) * item.quantity);
+                }
+                return sum;
+            }, 0);
+            const tax = (subtotal - savings) * 0.08875;
+            const total = subtotal - savings + tax;
+
+            document.getElementById('orderTotal').textContent = `$${total.toFixed(2)}`;
+            document.getElementById('orderItems').innerHTML = `
+                ${totalItems} item${totalItems !== 1 ? 's' : ''}
+                <span class="order-type-indicator" style="background-color: ${orderType === 'HERE' ? 'var(--primary-blue)' : 'var(--primary-orange)'}">
+                    ${orderType === 'HERE' ? 'DINE IN' : 'TAKE OUT'}
+                </span>
+            `;
+        }
+
+        // イベントリスナー設定
+        function setupEventListeners() {
+            const fields = ['firstName', 'lastName', 'phoneNumber'];
+            const smsConsent = document.getElementById('smsConsent');
+
+            // 各フィールドのイベント
+            fields.forEach(fieldName => {
+                const field = document.getElementById(fieldName);
+                
+                field.addEventListener('input', () => {
+                    if (fieldName === 'phoneNumber') {
+                        formatPhoneNumber(field);
+                    }
+                    validateField(fieldName);
+                    updateContinueButton();
+                    hapticFeedback();
+                });
+
+                field.addEventListener('blur', () => {
+                    validateField(fieldName);
+                });
+
+                field.addEventListener('focus', () => {
+                    clearFieldError(fieldName);
+                });
+            });
+
+            // SMS同意チェックボックス
+            smsConsent.addEventListener('change', () => {
+                updateContinueButton();
+                hapticFeedback();
+            });
+
+            // フォーム送信
+            document.getElementById('customerForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleSubmit();
+            });
+        }
+
+        // 電話番号フォーマット
+        function formatPhoneNumber(field) {
+            let value = field.value.replace(/\D/g, '');
+            
+            if (value.length >= 6) {
+                value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
+            } else if (value.length >= 3) {
+                value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+            }
+            
+            field.value = value;
+        }
+
+        // フィールドバリデーション
+        function validateField(fieldName) {
+            const field = document.getElementById(fieldName);
+            const rule = validation[fieldName];
+            const value = field.value.trim();
+
+            // 必須チェック
+            if (rule.required && !value) {
+                setFieldError(fieldName, `${getFieldLabel(fieldName)} is required`);
+                return false;
+            }
+
+            // 最小長チェック
+            if (rule.minLength && value.length < rule.minLength && value.length > 0) {
+                setFieldError(fieldName, `${getFieldLabel(fieldName)} must be at least ${rule.minLength} characters`);
+                return false;
+            }
+
+            // パターンチェック
+            if (rule.pattern && value && !rule.pattern.test(value)) {
+                setFieldError(fieldName, rule.message);
+                return false;
+            }
+
+            // バリデーション成功
+            setFieldValid(fieldName);
+            return true;
+        }
+
+        // フィールドラベル取得
+        function getFieldLabel(fieldName) {
+            const labels = {
+                firstName: 'First Name',
+                lastName: 'Last Name',
+                phoneNumber: 'Phone Number'
+            };
+            return labels[fieldName];
+        }
+
+        // エラー設定
+        function setFieldError(fieldName, message) {
+            const field = document.getElementById(fieldName);
+            const errorEl = document.getElementById(`${fieldName}Error`);
+            
+            field.classList.remove('valid', 'success');
+            field.classList.add('invalid');
+            errorEl.querySelector('span:last-child').textContent = message;
+            errorEl.classList.add('show');
+        }
+
+        // エラークリア
+        function clearFieldError(fieldName) {
+            const field = document.getElementById(fieldName);
+            const errorEl = document.getElementById(`${fieldName}Error`);
+            
+            field.classList.remove('invalid');
+            errorEl.classList.remove('show');
+        }
+
+        // バリデーション成功設定
+        function setFieldValid(fieldName) {
+            const field = document.getElementById(fieldName);
+            const errorEl = document.getElementById(`${fieldName}Error`);
+            
+            field.classList.remove('invalid');
+            field.classList.add('valid');
+            errorEl.classList.remove('show');
+            
+            // 成功アニメーション
+            setTimeout(() => {
+                field.classList.add('success');
+                setTimeout(() => field.classList.remove('success'), 300);
+            }, 100);
+        }
+
+        // 続行ボタン状態更新
+        function updateContinueButton() {
+            const continueBtn = document.getElementById('continueBtn');
+            const smsConsent = document.getElementById('smsConsent');
+            const allFieldsValid = ['firstName', 'lastName', 'phoneNumber'].every(field => {
+                const value = document.getElementById(field).value.trim();
+                return value && validateField(field);
+            });
+            
+            continueBtn.disabled = !allFieldsValid || !smsConsent.checked || isSubmitting;
+        }
+
+        // フォーム送信処理
+        function handleSubmit() {
+            if (isSubmitting) return;
+
+            // 最終バリデーション
+            const allValid = ['firstName', 'lastName', 'phoneNumber'].every(validateField);
+            const smsConsent = document.getElementById('smsConsent').checked;
+
+            if (!allValid || !smsConsent) {
+                // エラーがあれば画面をシェイク
+                document.querySelector('.mobile-container').style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    document.querySelector('.mobile-container').style.animation = '';
+                }, 500);
+                return;
+            }
+
+            submitOrder();
+        }
+
+        // 注文送信
+        function submitOrder() {
+            isSubmitting = true;
+            const continueBtn = document.getElementById('continueBtn');
+            continueBtn.classList.add('loading');
+            continueBtn.innerHTML = '<span>Processing...</span>';
+
+            // 顧客情報収集
+            const customerInfo = {
+                firstName: document.getElementById('firstName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim(),
+                phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                smsConsent: document.getElementById('smsConsent').checked,
+                orderType: sessionStorage.getItem('orderType') || 'HERE',
+                timestamp: new Date().toISOString()
+            };
+
+            // 注文完了情報
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const savings = cart.reduce((sum, item) => {
+                if (item.isComboItem && item.originalPrice) {
+                    return sum + ((item.originalPrice - item.price) * item.quantity);
+                }
+                return sum;
+            }, 0);
+            const tax = (subtotal - savings) * 0.08875;
+            const total = subtotal - savings + tax;
+
+            const orderSummary = {
+                orderId: 'ORD-' + Date.now(),
+                items: cart,
+                customer: customerInfo,
+                subtotal: subtotal,
+                savings: savings,
+                tax: tax,
+                total: total,
+                completedAt: new Date().toISOString()
+            };
+
+            // セッションストレージに保存
+            sessionStorage.setItem('customerInfo', JSON.stringify(customerInfo));
+            sessionStorage.setItem('completedOrder', JSON.stringify(orderSummary));
+
+            // ハプティックフィードバック
+            hapticFeedback();
+
+            // 成功表示
+            setTimeout(() => {
+                showSuccessOverlay(customerInfo, orderSummary.orderId);
+                
+                // 3秒後にスクリーンセーバーに戻る
+                setTimeout(() => {
+                    // カートをクリア
+                    sessionStorage.removeItem('cart');
+                    sessionStorage.removeItem('selectedProductId');
+                    
+                    // スクリーンセーバーに戻る
+                    window.location.href = 'mobile_01_screensaver.html';
+                }, 3000);
+            }, 1500);
+        }
+
+        // 成功オーバーレイ表示
+        function showSuccessOverlay(customerInfo, orderId) {
+            const overlay = document.getElementById('successOverlay');
+            const content = overlay.querySelector('.success-content');
+            
+            content.innerHTML = `
+                <div class="success-icon">🎉</div>
+                <div class="success-title">Order Placed!</div>
+                <div class="success-message">
+                    Thank you ${customerInfo.firstName}!<br>
+                    Order #${orderId.slice(-6)}<br>
+                    SMS updates will be sent to ${customerInfo.phoneNumber}
+                </div>
+            `;
+            
+            overlay.style.display = 'flex';
+        }
+
+        // 注文キャンセル
+        function cancelOrder() {
+            if (confirm('Are you sure you want to cancel your order? All items will be removed from your cart.')) {
+                sessionStorage.clear();
+                window.location.href = 'mobile_01_screensaver.html';
+            }
+        }
+
+        // 戻る
+        function goBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'mobile_06_order_summary.html';
+            }
+        }
+
+        // 最初のフィールドにフォーカス
+        function focusFirstField() {
+            // モバイルでの自動フォーカスは避ける（キーボード表示による画面レイアウト崩れを防ぐため）
+            // setTimeout(() => {
+            //     document.getElementById('firstName').focus();
+            // }, 500);
+        }
+
+        // ハプティックフィードバック
+        function hapticFeedback() {
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(10);
+            }
+        }
+
+        // キーボードイベント
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                cancelOrder();
+            } else if (e.key === 'Enter' && !document.getElementById('continueBtn').disabled) {
+                handleSubmit();
+            }
+        });
+
+        // タッチイベント最適化
+        document.addEventListener('touchstart', function(e) {
+            const button = e.target.closest('button, .consent-checkbox');
+            if (button && !button.disabled) {
+                button.style.transform = 'scale(0.98)';
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(e) {
+            const button = e.target.closest('button, .consent-checkbox');
+            if (button) {
+                setTimeout(() => {
+                    button.style.transform = '';
+                }, 100);
+            }
+        }, { passive: true });
+
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>

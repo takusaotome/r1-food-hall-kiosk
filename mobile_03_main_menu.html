@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ROUND1 Food Hall - Menu</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* CSS変数定義 */
+        :root {
+            --primary-red: #e60012;
+            --secondary-red: #d01324;
+            --primary-orange: #fd7e14;
+            --primary-green: #28a745;
+            --primary-blue: #007bff;
+            --background-white: #ffffff;
+            --background-cream: #faf7f0;
+            --text-dark: #212529;
+            --text-light: #6c757d;
+            --border-gray: #dee2e6;
+        }
+
+        /* ベースレイアウト */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background-cream);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: pan-y;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* メインコンテナ */
+        .mobile-container {
+            width: 100%;
+            height: 100vh;
+            background-color: var(--background-white);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダー */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+        }
+
+        .yuu-logo {
+            width: 80px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .yuu-logo img {
+            height: 100%;
+            width: auto;
+        }
+
+        .cart-button {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border: 2px solid var(--border-gray);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cart-button:active {
+            transform: scale(0.9);
+        }
+
+        .cart-icon {
+            font-size: 20px;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--primary-red);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        /* ナビゲーションバー（横スクロール） */
+        .navigation-bar {
+            padding: 10px 0;
+            background-color: white;
+            border-bottom: 1px solid var(--border-gray);
+        }
+
+        .nav-scroll-container {
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .nav-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-items {
+            display: flex;
+            gap: 15px;
+            padding: 0 15px;
+            white-space: nowrap;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 60px;
+        }
+
+        .nav-item-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .nav-item.active .nav-item-icon {
+            border-color: var(--primary-red);
+            background-color: #fff5f5;
+        }
+
+        .nav-item-label {
+            font-size: 10px;
+            color: var(--text-dark);
+            text-align: center;
+        }
+
+        /* メインコンテンツエリア */
+        .main-content {
+            flex: 1;
+            overflow: hidden;
+            margin-top: 140px;
+            position: relative;
+        }
+
+        /* テナントセクション（縦スワイプ） */
+        .tenant-sections-container {
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: y mandatory;
+            padding-bottom: 80px;
+        }
+
+        .tenant-section {
+            min-height: 400px;
+            scroll-snap-align: start;
+            padding: 20px 0;
+            border-bottom: 8px solid #f0f0f0;
+        }
+
+        .tenant-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 0 15px;
+            margin-bottom: 15px;
+        }
+
+        .tenant-logo {
+            height: 50px;
+            width: auto;
+        }
+
+        .tenant-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        /* 商品カルーセル（横スワイプ） */
+        .products-carousel {
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            scroll-snap-type: x mandatory;
+        }
+
+        .products-carousel::-webkit-scrollbar {
+            display: none;
+        }
+
+        .products-list {
+            display: flex;
+            gap: 15px;
+            padding: 0 15px;
+        }
+
+        .product-card {
+            min-width: 150px;
+            background-color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            scroll-snap-align: start;
+        }
+
+        .product-card:active {
+            transform: scale(0.95);
+        }
+
+        .product-image {
+            width: 150px;
+            height: 150px;
+            background-color: #f8f9fa;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* ドリンク専用の横長画像スタイル */
+        .drink-product-card .product-image {
+            width: 150px;
+            height: 100px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .drink-product-card .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .product-info {
+            padding: 10px;
+        }
+
+        .product-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+            line-height: 1.3;
+            min-height: 32px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .product-price {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+
+        /* ボトムナビゲーション */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+
+        .bottom-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .bottom-nav-item:active {
+            transform: scale(0.9);
+        }
+
+        .bottom-nav-item.active {
+            color: var(--primary-red);
+        }
+
+        .bottom-nav-icon {
+            font-size: 20px;
+        }
+
+        .bottom-nav-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* チェックアウトボタン */
+        .checkout-button {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--secondary-red) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            box-shadow: 0 5px 20px rgba(230, 0, 18, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 90;
+        }
+        
+        
+        .checkout-button-icon {
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            opacity: 0.95;
+        }
+
+        .checkout-button:active {
+            transform: scale(0.9);
+        }
+
+        /* ローディング */
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-gray);
+            border-top-color: var(--primary-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        /* フィルタリングアニメーション */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .tenant-section {
+            transition: all 0.3s ease;
+        }
+        
+        .tenant-section[style*="display: none"] {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        /* レスポンシブ対応 */
+        @media (min-width: 768px) {
+            .mobile-container {
+                max-width: 480px;
+                margin: 0 auto;
+                box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-top">
+                <div class="yuu-logo">
+                    <img src="media/yuu_logo.png" alt="YUU">
+                </div>
+                <div class="cart-button" onclick="goToCart()">
+                    <span class="cart-icon">🛒</span>
+                    <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+                </div>
+            </div>
+            
+            <!-- ナビゲーションバー -->
+            <div class="navigation-bar">
+                <div class="nav-scroll-container">
+                    <div class="nav-items">
+                        <div class="nav-item active" onclick="filterCategory('all')">
+                            <div class="nav-item-icon">🍴</div>
+                            <span class="nav-item-label">All</span>
+                        </div>
+                        <div class="nav-item" onclick="filterCategory('ramen')">
+                            <div class="nav-item-icon">🍜</div>
+                            <span class="nav-item-label">Ramen</span>
+                        </div>
+                        <div class="nav-item" onclick="filterCategory('pizza')">
+                            <div class="nav-item-icon">🍕</div>
+                            <span class="nav-item-label">Pizza</span>
+                        </div>
+                        <div class="nav-item" onclick="filterCategory('yakitori')">
+                            <div class="nav-item-icon">🍗</div>
+                            <span class="nav-item-label">Yakitori</span>
+                        </div>
+                        <div class="nav-item" onclick="filterCategory('tonkatsu')">
+                            <div class="nav-item-icon">🍖</div>
+                            <span class="nav-item-label">Tonkatsu</span>
+                        </div>
+                        <div class="nav-item" onclick="filterCategory('takoyaki')">
+                            <div class="nav-item-icon">🐙</div>
+                            <span class="nav-item-label">Takoyaki</span>
+                        </div>
+                        <div class="nav-item" onclick="filterCategory('kushiage')">
+                            <div class="nav-item-icon">🍢</div>
+                            <span class="nav-item-label">Kushiage</span>
+                        </div>
+                        <div class="nav-item" onclick="filterCategory('drinks')">
+                            <div class="nav-item-icon">🥤</div>
+                            <span class="nav-item-label">Drinks</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <div class="tenant-sections-container" id="tenantSections">
+                <!-- 黒門 -->
+                <div class="tenant-section" data-category="ramen">
+                    <div class="tenant-header">
+                        <img src="media/kuromon_logo.png" alt="Kuromon" class="tenant-logo">
+                        <span class="tenant-name">Kuromon</span>
+                    </div>
+                    <div class="products-carousel">
+                        <div class="products-list">
+                            <div class="product-card" onclick="goToProductDetail(1)">
+                                <div class="product-image">
+                                    <img src="media/kuromon.png" alt="Kuromon Ramen">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Kuromon Ramen Large</div>
+                                    <div class="product-price">$36</div>
+                                </div>
+                            </div>
+                            <div class="product-card" onclick="goToProductDetail(11)">
+                                <div class="product-image">
+                                    <img src="media/kuromon.png" alt="Kuromon Special">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Kuromon Special Set</div>
+                                    <div class="product-price">$42</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 麺屋無風 -->
+                <div class="tenant-section" data-category="ramen">
+                    <div class="tenant-header">
+                        <img src="media/men-ya_mufu_logo.png" alt="Men-ya Mufu" class="tenant-logo">
+                        <span class="tenant-name">Men-ya Mufu</span>
+                    </div>
+                    <div class="products-carousel">
+                        <div class="products-list">
+                            <div class="product-card" onclick="goToProductDetail(2)">
+                                <div class="product-image">
+                                    <img src="media/men-ya_mufu.png" alt="Men-ya Mufu Ramen">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Men-ya Mufu Ramen</div>
+                                    <div class="product-price">$18</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 鳥鞭 -->
+                <div class="tenant-section" data-category="yakitori">
+                    <div class="tenant-header">
+                        <img src="media/tori_bien_logo.png" alt="Tori Bien" class="tenant-logo">
+                        <span class="tenant-name">Tori Bien</span>
+                    </div>
+                    <div class="products-carousel">
+                        <div class="products-list">
+                            <div class="product-card" onclick="goToProductDetail(3)">
+                                <div class="product-image">
+                                    <img src="media/tori_bien.png" alt="Yakitori">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Tori Bien Yakitori Set</div>
+                                    <div class="product-price">$16</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 成蔵 -->
+                <div class="tenant-section" data-category="tonkatsu">
+                    <div class="tenant-header">
+                        <img src="media/narikura_logo.png" alt="Narikura" class="tenant-logo">
+                        <span class="tenant-name">Narikura</span>
+                    </div>
+                    <div class="products-carousel">
+                        <div class="products-list">
+                            <div class="product-card" onclick="goToProductDetail(4)">
+                                <div class="product-image">
+                                    <img src="media/narikura.png" alt="Tonkatsu">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Narikura Tonkatsu</div>
+                                    <div class="product-price">$28</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ボデガ -->
+                <div class="tenant-section" data-category="pizza">
+                    <div class="tenant-header">
+                        <img src="media/bodega_logo.png" alt="Bodega" class="tenant-logo">
+                        <span class="tenant-name">Pizza Bodega</span>
+                    </div>
+                    <div class="products-carousel">
+                        <div class="products-list">
+                            <div class="product-card" onclick="goToProductDetail(6)">
+                                <div class="product-image">
+                                    <img src="media/bodega.png" alt="Pizza">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Bodega Pizza Margherita</div>
+                                    <div class="product-price">$22</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ラーメンハヤト -->
+                <div class="tenant-section" data-category="ramen">
+                    <div class="tenant-header">
+                        <img src="media/ramen_hayato_logo.png" alt="Hayato" class="tenant-logo">
+                        <span class="tenant-name">Ramen Hayato</span>
+                    </div>
+                    <div class="products-carousel">
+                        <div class="products-list">
+                            <div class="product-card" onclick="goToProductDetail(7)">
+                                <div class="product-image">
+                                    <img src="media/ramen_hayato.png" alt="Hayato Ramen">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Hayato Ramen Special</div>
+                                    <div class="product-price">$24</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- わなか -->
+                <div class="tenant-section" data-category="takoyaki">
+                    <div class="tenant-header">
+                        <img src="media/wanaka_log.png" alt="Wanaka" class="tenant-logo">
+                        <span class="tenant-name">Wanaka</span>
+                    </div>
+                    <div class="products-carousel">
+                        <div class="products-list">
+                            <div class="product-card" onclick="goToProductDetail(8)">
+                                <div class="product-image">
+                                    <img src="media/wanaka.png" alt="Takoyaki">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Wanaka Takoyaki</div>
+                                    <div class="product-price">$12</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 大阪串カツ -->
+                <div class="tenant-section" data-category="kushiage">
+                    <div class="tenant-header">
+                        <img src="media/osaka_kushiage_logo.png" alt="Osaka Kushiage" class="tenant-logo">
+                        <span class="tenant-name">Osaka Kushiage</span>
+                    </div>
+                    <div class="products-carousel">
+                        <div class="products-list">
+                            <div class="product-card" onclick="goToProductDetail(9)">
+                                <div class="product-image">
+                                    <img src="media/osaka_kushiage.png" alt="Kushiage">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Osaka Kushiage Set</div>
+                                    <div class="product-price">$20</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ドリンクステーション -->
+                <div class="tenant-section" data-category="drinks">
+                    <div class="tenant-header">
+                        <img src="media/bottled_water.png" alt="Drinks" class="tenant-logo">
+                        <span class="tenant-name">Drink Station</span>
+                    </div>
+                    <div class="products-carousel">
+                        <div class="products-list">
+                            <div class="product-card drink-product-card" onclick="goToProductDetail(20)">
+                                <div class="product-image">
+                                    <img src="media/soda.jpeg" alt="Soft Drink">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Soft Drink</div>
+                                    <div class="product-price">$5</div>
+                                </div>
+                            </div>
+                            <div class="product-card drink-product-card" onclick="goToProductDetail(21)">
+                                <div class="product-image">
+                                    <img src="media/bottled_water.png" alt="Bottled Water">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Water</div>
+                                    <div class="product-price">$5</div>
+                                </div>
+                            </div>
+                            <div class="product-card drink-product-card" onclick="goToProductDetail(22)">
+                                <div class="product-image">
+                                    <img src="media/green_tea.jpeg" alt="Green Tea">
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name">Green Tea</div>
+                                    <div class="product-price">$5</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- チェックアウトボタン -->
+            <div class="checkout-button" id="checkoutButton" style="display: none;" onclick="goToCart()">
+                <img src="media/cart.jpeg" alt="Cart" class="checkout-button-icon">
+            </div>
+        </main>
+
+        <!-- ボトムナビゲーション -->
+        <nav class="bottom-nav">
+            <a href="mobile_01_screensaver.html" class="bottom-nav-item">
+                <span class="bottom-nav-icon">🏠</span>
+                <span class="bottom-nav-label">Home</span>
+            </a>
+            <div class="bottom-nav-item active">
+                <span class="bottom-nav-icon">🍴</span>
+                <span class="bottom-nav-label">Menu</span>
+            </div>
+            <div class="bottom-nav-item" onclick="goToCart()">
+                <span class="bottom-nav-icon">🛒</span>
+                <span class="bottom-nav-label">Cart</span>
+            </div>
+            <div class="bottom-nav-item" onclick="goToCheckout()">
+                <span class="bottom-nav-icon">💳</span>
+                <span class="bottom-nav-label">Checkout</span>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        // カート管理
+        let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+
+        // 初期化
+        function init() {
+            updateCartBadge();
+            setupSwipeGestures();
+        }
+
+        // カートバッジ更新
+        function updateCartBadge() {
+            const badge = document.getElementById('cartBadge');
+            const checkoutButton = document.getElementById('checkoutButton');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            
+            if (totalItems > 0) {
+                badge.textContent = totalItems;
+                badge.style.display = 'flex';
+                checkoutButton.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+                checkoutButton.style.display = 'none';
+            }
+        }
+
+        // カテゴリフィルター
+        function filterCategory(category) {
+            // ナビゲーションアイテムのアクティブ状態を更新
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // すべてのテナントセクションを取得
+            const tenantSections = document.querySelectorAll('.tenant-section');
+            
+            // ハプティックフィードバック
+            hapticFeedback();
+            
+            if (category === 'all') {
+                // すべて表示
+                tenantSections.forEach(section => {
+                    section.style.display = 'block';
+                    section.style.animation = 'fadeInUp 0.3s ease-out';
+                });
+            } else {
+                // 指定されたカテゴリのみ表示
+                tenantSections.forEach(section => {
+                    const sectionCategory = section.getAttribute('data-category');
+                    if (sectionCategory === category) {
+                        section.style.display = 'block';
+                        section.style.animation = 'fadeInUp 0.3s ease-out';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+                
+                // 選択されたカテゴリの最初のセクションまでスクロール
+                const firstVisibleSection = document.querySelector(`[data-category="${category}"]`);
+                if (firstVisibleSection) {
+                    setTimeout(() => {
+                        firstVisibleSection.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start' 
+                        });
+                    }, 100);
+                }
+            }
+        }
+
+        // 商品詳細へ
+        function goToProductDetail(productId) {
+            sessionStorage.setItem('selectedProductId', productId);
+            window.location.href = 'mobile_04_detail_menu.html';
+        }
+
+        // カートへ
+        function goToCart() {
+            window.location.href = 'mobile_06_order_summary.html';
+        }
+
+        // チェックアウトへ
+        function goToCheckout() {
+            if (cart.length === 0) {
+                alert('カートが空です');
+                return;
+            }
+            window.location.href = 'mobile_07_customer_field.html';
+        }
+
+        // スワイプジェスチャー設定
+        function setupSwipeGestures() {
+            // 横スクロールのスナップ動作
+            const carousels = document.querySelectorAll('.products-carousel');
+            carousels.forEach(carousel => {
+                let isScrolling = false;
+                carousel.addEventListener('scroll', () => {
+                    if (!isScrolling) {
+                        window.requestAnimationFrame(() => {
+                            // スムーズなスクロール体験
+                            isScrolling = false;
+                        });
+                        isScrolling = true;
+                    }
+                });
+            });
+
+            // 縦スクロールのスナップ動作
+            const tenantContainer = document.getElementById('tenantSections');
+            let lastScrollTop = 0;
+            tenantContainer.addEventListener('scroll', () => {
+                const scrollTop = tenantContainer.scrollTop;
+                // スクロール方向の検出
+                if (scrollTop > lastScrollTop) {
+                    // 下スクロール
+                } else {
+                    // 上スクロール
+                }
+                lastScrollTop = scrollTop;
+            });
+        }
+
+        // ハプティックフィードバック
+        function hapticFeedback() {
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(10);
+            }
+        }
+
+        // タッチイベント最適化
+        document.addEventListener('touchstart', function(e) {
+            if (e.target.closest('.product-card')) {
+                hapticFeedback();
+            }
+        }, { passive: true });
+
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>

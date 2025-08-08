@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ROUND1 Food Hall - Add More?</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* CSS変数定義 */
+        :root {
+            --primary-red: #e60012;
+            --secondary-red: #d01324;
+            --primary-orange: #fd7e14;
+            --primary-green: #28a745;
+            --primary-blue: #007bff;
+            --background-white: #ffffff;
+            --background-cream: #faf7f0;
+            --text-dark: #212529;
+            --text-light: #6c757d;
+            --border-gray: #dee2e6;
+        }
+
+        /* ベースレイアウト */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* オーバーレイ */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.6) 100%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+            padding: 0;
+        }
+
+        /* ポップアップモーダル */
+        .popup-modal {
+            background-color: var(--background-white);
+            border-radius: 25px 25px 0 0;
+            width: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            padding: 25px 20px 30px;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* ハンドルバー */
+        .handle-bar {
+            width: 40px;
+            height: 4px;
+            background-color: var(--border-gray);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        /* クローズボタン */
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            background-color: var(--background-cream);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+
+        .close-button:active {
+            transform: scale(0.9);
+            background-color: var(--border-gray);
+        }
+
+        /* ヘッダーセクション */
+        .popup-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .popup-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .popup-subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        /* おすすめ商品セクション */
+        .recommended-section {
+            margin-bottom: 30px;
+            padding-top: 5px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .recommended-items {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding: 5px 5px 10px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .recommended-items::-webkit-scrollbar {
+            display: none;
+        }
+
+        .recommend-card {
+            min-width: 140px;
+            background-color: white;
+            border: 2px solid var(--border-gray);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .recommend-card:active {
+            transform: scale(0.95);
+        }
+
+        .recommend-card.selected {
+            border-color: var(--primary-red);
+            background: linear-gradient(135deg, #fff5f5 0%, #ffebee 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230, 0, 18, 0.2);
+        }
+
+        .recommend-image {
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            background-color: var(--background-cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            overflow: hidden;
+        }
+
+        .recommend-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .recommend-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .recommend-price {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--primary-green);
+            margin-bottom: 5px;
+        }
+
+        .recommend-description {
+            font-size: 10px;
+            color: var(--text-light);
+            line-height: 1.3;
+        }
+
+        /* 選択インジケーター */
+        .selection-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--primary-red);
+            color: white;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .recommend-card.selected .selection-indicator {
+            display: flex;
+        }
+
+        /* 説明セクション */
+        .benefits-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .benefits-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .benefits-text {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        /* アクションボタン */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .add-selected-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--secondary-red) 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(230, 0, 18, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .add-selected-btn:active {
+            transform: scale(0.98);
+        }
+
+        .add-selected-btn:disabled {
+            background: linear-gradient(135deg, var(--border-gray) 0%, #adb5bd 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .no-thanks-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: white;
+            color: var(--text-light);
+            border: 2px solid var(--border-gray);
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .no-thanks-btn:active {
+            transform: scale(0.98);
+            background-color: var(--background-cream);
+        }
+
+        /* コンボ提案 */
+        .combo-suggestion {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .combo-badge {
+            display: inline-block;
+            background-color: #ffc107;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .combo-text {
+            font-size: 13px;
+            color: #856404;
+            font-weight: 500;
+        }
+
+        .combo-savings {
+            font-size: 16px;
+            font-weight: bold;
+            color: #b8860b;
+            margin-top: 5px;
+        }
+
+        /* アニメーション */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .recommend-card.selected {
+            animation: pulse 0.3s ease-out;
+        }
+
+        /* ローディング状態 */
+        .add-selected-btn.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .add-selected-btn.loading::after {
+            content: '';
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-height: 700px) {
+            .popup-modal {
+                max-height: 90vh;
+                padding: 20px 20px 25px;
+            }
+            
+            .popup-title {
+                font-size: 20px;
+            }
+            
+            .recommended-items {
+                gap: 12px;
+            }
+            
+            .recommend-card {
+                min-width: 130px;
+                padding: 12px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .overlay {
+                align-items: center;
+            }
+            
+            .popup-modal {
+                border-radius: 25px;
+                max-width: 400px;
+                max-height: 80vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" onclick="closePopup()">
+        <div class="popup-modal" onclick="event.stopPropagation()">
+            <!-- ハンドルバー -->
+            <div class="handle-bar"></div>
+            
+            <!-- クローズボタン -->
+            <button class="close-button" onclick="closePopup()">×</button>
+            
+            <!-- ヘッダー -->
+            <div class="popup-header">
+                <h2 class="popup-title">Add a drink?</h2>
+                <p class="popup-subtitle">Perfect pairings to complete your meal</p>
+            </div>
+
+            <!-- コンボ提案 -->
+            <div class="combo-suggestion">
+                <div class="combo-badge">COMBO DEAL</div>
+                <div class="combo-text">Add any drink for just</div>
+                <div class="combo-savings">$3 (Save $2)</div>
+            </div>
+
+            <!-- おすすめ商品 -->
+            <div class="recommended-section">
+                <div class="recommended-items">
+                    <div class="recommend-card" onclick="selectRecommendedItem(this, 'soft-drink', 5)">
+                        <div class="selection-indicator">✓</div>
+                        <div class="recommend-image">
+                            <img src="media/soda.jpeg" alt="Soft Drink">
+                        </div>
+                        <div class="recommend-name">Soft Drink</div>
+                        <div class="recommend-price">$3</div>
+                        <div class="recommend-description">Coca-Cola, Sprite, Orange</div>
+                    </div>
+                    
+                    <div class="recommend-card" onclick="selectRecommendedItem(this, 'bottled-water', 3)">
+                        <div class="selection-indicator">✓</div>
+                        <div class="recommend-image">
+                            <img src="media/bottled_water.png" alt="Bottled Water">
+                        </div>
+                        <div class="recommend-name">Bottled Water</div>
+                        <div class="recommend-price">$3</div>
+                        <div class="recommend-description">Pure spring water</div>
+                    </div>
+                    
+                    <div class="recommend-card" onclick="selectRecommendedItem(this, 'green-tea', 4)">
+                        <div class="selection-indicator">✓</div>
+                        <div class="recommend-image">
+                            <img src="media/green_tea.jpeg" alt="Iced Green Tea">
+                        </div>
+                        <div class="recommend-name">Iced Green Tea</div>
+                        <div class="recommend-price">$3</div>
+                        <div class="recommend-description">Refreshing Japanese tea</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 特典説明 -->
+            <div class="benefits-section">
+                <div class="benefits-title">💰 Special Combo Pricing</div>
+                <div class="benefits-text">
+                    When you add a drink to your order, you save $2 off the regular price!<br>
+                    Perfect for washing down your delicious meal.
+                </div>
+            </div>
+
+            <!-- アクションボタン -->
+            <div class="action-buttons">
+                <button class="add-selected-btn" id="addSelectedBtn" onclick="addSelectedItems()" disabled>
+                    Add Selected Items
+                </button>
+                <button class="no-thanks-btn" onclick="continueWithoutAdding()">
+                    No thanks, continue
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 状態管理
+        let selectedItems = [];
+        let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+        
+        // おすすめ商品データ
+        const recommendedProducts = {
+            'soft-drink': { id: 20, name: 'Soft Drink', price: 3, originalPrice: 5, icon: '🥤', image: 'media/soda.jpeg' },
+            'bottled-water': { id: 21, name: 'Bottled Water', price: 3, originalPrice: 5, icon: '💧', image: 'media/bottled_water.png' },
+            'green-tea': { id: 22, name: 'Iced Green Tea', price: 3, originalPrice: 5, icon: '🍵', image: 'media/green_tea.jpeg' }
+        };
+
+        // 初期化
+        function init() {
+            updateAddButton();
+            
+            // アニメーション後にポップアップ操作を有効化
+            setTimeout(() => {
+                document.querySelector('.popup-modal').style.pointerEvents = 'auto';
+            }, 400);
+        }
+
+        // おすすめアイテム選択
+        function selectRecommendedItem(cardElement, itemKey, originalPrice) {
+            const isSelected = cardElement.classList.contains('selected');
+            
+            // ハプティックフィードバック
+            hapticFeedback();
+            
+            if (isSelected) {
+                // 選択解除
+                cardElement.classList.remove('selected');
+                selectedItems = selectedItems.filter(key => key !== itemKey);
+            } else {
+                // 選択
+                cardElement.classList.add('selected');
+                selectedItems.push(itemKey);
+            }
+            
+            updateAddButton();
+        }
+
+        // 追加ボタンの状態更新
+        function updateAddButton() {
+            const button = document.getElementById('addSelectedBtn');
+            
+            if (selectedItems.length > 0) {
+                button.disabled = false;
+                const totalSavings = selectedItems.length * 2; // $2 per item savings
+                const totalPrice = selectedItems.length * 3; // $3 per combo item
+                button.innerHTML = `
+                    <span>Add ${selectedItems.length} item${selectedItems.length > 1 ? 's' : ''} - $${totalPrice}</span>
+                    <span style="font-size: 12px; opacity: 0.8;">(Save $${totalSavings})</span>
+                `;
+            } else {
+                button.disabled = true;
+                button.textContent = 'Add Selected Items';
+            }
+        }
+
+        // 選択したアイテムをカートに追加
+        function addSelectedItems() {
+            if (selectedItems.length === 0) return;
+            
+            const button = document.getElementById('addSelectedBtn');
+            button.classList.add('loading');
+            
+            // 選択された商品をカートに追加
+            selectedItems.forEach(itemKey => {
+                const product = recommendedProducts[itemKey];
+                const existingItemIndex = cart.findIndex(item => item.id === product.id);
+                
+                if (existingItemIndex > -1) {
+                    cart[existingItemIndex].quantity += 1;
+                } else {
+                    cart.push({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        originalPrice: product.originalPrice,
+                        quantity: 1,
+                        icon: product.icon,
+                        image: product.image,
+                        isComboItem: true
+                    });
+                }
+            });
+            
+            // カートを保存
+            sessionStorage.setItem('cart', JSON.stringify(cart));
+            
+            // ハプティックフィードバック
+            hapticFeedback();
+            
+            // 成功アニメーション後に次の画面へ
+            setTimeout(() => {
+                button.classList.remove('loading');
+                showSuccessAnimation();
+                
+                setTimeout(() => {
+                    continueToNextScreen();
+                }, 800);
+            }, 1000);
+        }
+
+        // 成功アニメーション
+        function showSuccessAnimation() {
+            const button = document.getElementById('addSelectedBtn');
+            button.innerHTML = '✓ Added to Cart!';
+            button.style.background = 'linear-gradient(135deg, var(--primary-green) 0%, #20c997 100%)';
+        }
+
+        // 追加せずに続行
+        function continueWithoutAdding() {
+            continueToNextScreen();
+        }
+
+        // ポップアップを閉じる
+        function closePopup() {
+            continueWithoutAdding();
+        }
+
+        // 次の画面へ遷移
+        function continueToNextScreen() {
+            const overlay = document.querySelector('.overlay');
+            overlay.style.animation = 'fadeOut 0.3s ease-out';
+            overlay.style.opacity = '0';
+            
+            setTimeout(() => {
+                // メインメニューに戻る
+                window.location.href = 'mobile_03_main_menu.html';
+            }, 300);
+        }
+
+        // キーボードイベント
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePopup();
+            } else if (e.key === 'Enter' && selectedItems.length > 0) {
+                addSelectedItems();
+            }
+        });
+
+        // スワイプで閉じる
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+
+        document.querySelector('.popup-modal').addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+        }, { passive: true });
+
+        document.querySelector('.popup-modal').addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            
+            currentY = e.touches[0].clientY;
+            const diff = currentY - startY;
+            
+            // 下方向のスワイプ
+            if (diff > 0) {
+                this.style.transform = `translateY(${Math.min(diff, 100)}px)`;
+                this.style.opacity = Math.max(1 - diff / 200, 0.5);
+            }
+        }, { passive: true });
+
+        document.querySelector('.popup-modal').addEventListener('touchend', function(e) {
+            if (!isDragging) return;
+            
+            const diff = currentY - startY;
+            
+            if (diff > 100) {
+                // 100px以上下にスワイプした場合は閉じる
+                closePopup();
+            } else {
+                // 元の位置に戻す
+                this.style.transform = 'translateY(0)';
+                this.style.opacity = '1';
+            }
+            
+            isDragging = false;
+        }, { passive: true });
+
+        // ハプティックフィードバック
+        function hapticFeedback() {
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(10);
+            }
+        }
+
+        // fadeOut アニメーション追加
+        const fadeOutKeyframes = `
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        `;
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = fadeOutKeyframes;
+        document.head.appendChild(styleSheet);
+
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>

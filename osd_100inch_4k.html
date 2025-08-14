@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status Display - 100" 4K Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 0.4vw;
+            padding: 0.3vw;
+            height: 96vh;
+            background: rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .restaurant-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 240, 240, 0.95));
+            border-radius: 1vw;
+            padding: 0.4vw;
+            box-shadow: 0 0.3vw 0.6vw rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            max-height: 46vh;
+            min-width: 0;
+            width: 100%;
+        }
+
+        .restaurant-card:hover {
+            transform: translateY(-0.5vw);
+            box-shadow: 0 1.5vw 3vw rgba(0, 0, 0, 0.4);
+        }
+
+        .restaurant-logo {
+            width: 95%;
+            max-width: 10vw;
+            height: 3vw;
+            object-fit: contain;
+            margin-bottom: 0.2vw;
+            border-radius: 0.3vw;
+            background: white;
+            padding: 0.15vw;
+            box-shadow: 0 0.15vw 0.3vw rgba(0, 0, 0, 0.1);
+        }
+
+        .restaurant-name {
+            font-size: 0.65vw;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 0.1vw;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            line-height: 1;
+        }
+
+        .status-section {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.1vw;
+        }
+
+        .status-label {
+            font-size: 0.6vw;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        .orders-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1vw;
+            width: 100%;
+            flex: 1;
+            height: 35vh;
+            overflow: hidden;
+        }
+
+        .order-row {
+            display: flex;
+            gap: 0.1vw;
+            width: 100%;
+            flex: 1;
+        }
+
+        .order-item {
+            flex: 1;
+            border-radius: 0.2vw;
+            box-shadow: 0 0.1vw 0.3vw rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8vw;
+            font-weight: 900;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            font-family: 'Arial Black', Arial, sans-serif;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            height: 4.2vh;
+        }
+
+        .order-preparing {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            animation: pulse-preparing 2s infinite;
+        }
+
+        .order-ready {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            animation: pulse-ready 1.5s infinite;
+        }
+
+        .order-empty {
+            background: rgba(189, 195, 199, 0.3);
+            border: 2px dashed rgba(149, 165, 166, 0.5);
+        }
+
+        @keyframes pulse-preparing {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+        }
+
+        @keyframes pulse-ready {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(1.05); }
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 0.2vw;
+            right: 1vw;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 0.4vw 0.6vw;
+            border-radius: 0.3vw;
+            display: flex;
+            gap: 0.8vw;
+            box-shadow: 0 0.2vw 0.4vw rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.2vw;
+        }
+
+        .legend-color {
+            width: 0.8vw;
+            height: 0.5vw;
+            border-radius: 0.1vw;
+        }
+
+        .legend-text {
+            font-size: 0.7vw;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-container">
+        <!-- Row 1 -->
+        <div class="restaurant-card">
+            <img src="media/bodega_logo.png" alt="Pizza Bodega" class="restaurant-logo">
+            <div class="restaurant-name">PIZZA BODEGA</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-preparing">1001</div>
+                    <div class="order-item order-ready">1002</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">1003</div>
+                    <div class="order-item order-ready">1004</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">1005</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">1006</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">1007</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/curry_hakugintei_logo.png" alt="Curry Hakugintei" class="restaurant-logo">
+            <div class="restaurant-name">Curry Hakugintei</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-preparing">2001</div>
+                    <div class="order-item order-ready">2002</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">2003</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">2004</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/tori_bien_logo.png" alt="Tori Bien" class="restaurant-logo">
+            <div class="restaurant-name">Tori Bien</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-preparing">3001</div>
+                    <div class="order-item order-ready">3002</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">3003</div>
+                    <div class="order-item order-ready">3004</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">3005</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">3006</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/kuromon_logo.png" alt="Kuromon" class="restaurant-logo">
+            <div class="restaurant-name">Kuromon</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-preparing">4001</div>
+                    <div class="order-item order-ready">4002</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">4003</div>
+                    <div class="order-item order-ready">4004</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">4005</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">4006</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/osaka_kushiage_logo.png" alt="Osaka Kushiage" class="restaurant-logo">
+            <div class="restaurant-name">Osaka Kushiage</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-preparing">5001</div>
+                    <div class="order-item order-ready">5002</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">5003</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">5004</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/men-ya_mufu_logo.png" alt="Men-ya Mufu" class="restaurant-logo">
+            <div class="restaurant-name">Men-ya Mufu</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-preparing">6001</div>
+                    <div class="order-item order-ready">6002</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/wanaka_log.png" alt="Wanaka" class="restaurant-logo">
+            <div class="restaurant-name">Wanaka</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-preparing">7001</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">7002</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">7003</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">7004</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">7005</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="restaurant-card">
+            <img src="media/ramen_hayato_logo.png" alt="Ramen Hayato" class="restaurant-logo">
+            <div class="restaurant-name">RAMEN HAYATO</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-preparing">8001</div>
+                    <div class="order-item order-ready">8002</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">8003</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">8004</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">8005</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/narikura_logo.png" alt="Narikura Shigeni" class="restaurant-logo">
+            <div class="restaurant-name">Narikura Shigeni</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-preparing">9001</div>
+                    <div class="order-item order-ready">9002</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">9003</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">9004</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/shaved_ice_housekibaco_logo.png" alt="Shaved Ice Housekibaco" class="restaurant-logo">
+            <div class="restaurant-name">Shaved Ice Housekibaco</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/okonomiyaki_hana_logo.png" alt="Okonomiyaki Hana" class="restaurant-logo">
+            <div class="restaurant-name">Okonomiyaki Hana</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-preparing">0001</div>
+                    <div class="order-item order-ready">0002</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">0003</div>
+                    <div class="order-item order-ready">0004</div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">0005</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-preparing">0006</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/onigiri_gorichan_logo.png" alt="Onigiri Gorichan" class="restaurant-logo">
+            <div class="restaurant-name">Onigiri Gorichan</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/udon-dokoro_shigemi_logo.png" alt="Udon-dokoro Shigemi" class="restaurant-logo">
+            <div class="restaurant-name">Udon-dokoro Shigemi</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="restaurant-card">
+            <img src="media/iro_tori_dori_logo.png" alt="Iro Tori Dori" class="restaurant-logo">
+            <div class="restaurant-name">Iro Tori Dori</div>
+            <div class="status-section">
+                <div class="status-label">Preparing</div>
+                <div class="status-label">Ready</div>
+            </div>
+            <div class="orders-container">
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color order-preparing"></div>
+            <div class="legend-text">Preparing</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color order-ready"></div>
+            <div class="legend-text">Ready for Pickup</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color order-empty"></div>
+            <div class="legend-text">No Orders</div>
+        </div>
+    </div>
+
+    <script>
+        function getRandomOrderNumber() {
+            return Math.floor(Math.random() * 9000) + 1000;
+        }
+
+        function simulateOrderUpdates() {
+            const orderItems = document.querySelectorAll('.order-item');
+            
+            orderItems.forEach(item => {
+                if (Math.random() < 0.05) {
+                    if (item.classList.contains('order-preparing')) {
+                        item.classList.remove('order-preparing');
+                        item.classList.add('order-ready');
+                    } else if (item.classList.contains('order-ready')) {
+                        item.classList.remove('order-ready');
+                        item.classList.add('order-empty');
+                        item.textContent = '';
+                    } else if (item.classList.contains('order-empty') && Math.random() < 0.3) {
+                        item.classList.remove('order-empty');
+                        item.classList.add('order-preparing');
+                        item.textContent = getRandomOrderNumber();
+                    }
+                }
+            });
+        }
+
+        setInterval(simulateOrderUpdates, 3000);
+
+        document.addEventListener('keydown', function(e) {
+            switch(e.key) {
+                case 'r':
+                case 'R':
+                    location.reload();
+                    break;
+                case 'f':
+                case 'F':
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen();
+                    } else {
+                        document.exitFullscreen();
+                    }
+                    break;
+                case 'n':
+                case 'N':
+                    const emptyItems = document.querySelectorAll('.order-item.order-empty');
+                    const randomEmpty = emptyItems[Math.floor(Math.random() * emptyItems.length)];
+                    if (randomEmpty) {
+                        randomEmpty.classList.remove('order-empty');
+                        randomEmpty.classList.add('order-preparing');
+                        randomEmpty.textContent = getRandomOrderNumber();
+                    }
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

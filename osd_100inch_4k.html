@@ -109,7 +109,7 @@
             flex: 1;
             border-radius: 0.2vw;
             box-shadow: 0 0.1vw 0.3vw rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
+            transition: all 0.5s ease;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -123,6 +123,7 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             height: 4.2vh;
+            position: relative;
         }
 
         .order-preparing {
@@ -148,6 +149,17 @@
         @keyframes pulse-ready {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.9; transform: scale(1.05); }
+        }
+
+        @keyframes moveToReady {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(20px); opacity: 0.5; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        .order-moving {
+            animation: moveToReady 0.8s ease-out;
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
         }
 
         .legend {
@@ -210,6 +222,14 @@
                 </div>
                 <div class="order-row">
                     <div class="order-item order-preparing">1007</div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
+                    <div class="order-item order-empty"></div>
+                </div>
+                <div class="order-row">
+                    <div class="order-item order-empty"></div>
                     <div class="order-item order-empty"></div>
                 </div>
                 <div class="order-row">
@@ -800,28 +820,151 @@
             return Math.floor(Math.random() * 9000) + 1000;
         }
 
-        function simulateOrderUpdates() {
-            const orderItems = document.querySelectorAll('.order-item');
+        function updateRestaurantOrders(restaurantCard) {
+            const orderRows = restaurantCard.querySelectorAll('.order-row');
+            const preparingItems = [];
+            const readyItems = [];
             
-            orderItems.forEach(item => {
-                if (Math.random() < 0.05) {
-                    if (item.classList.contains('order-preparing')) {
-                        item.classList.remove('order-preparing');
-                        item.classList.add('order-ready');
-                    } else if (item.classList.contains('order-ready')) {
-                        item.classList.remove('order-ready');
-                        item.classList.add('order-empty');
-                        item.textContent = '';
-                    } else if (item.classList.contains('order-empty') && Math.random() < 0.3) {
-                        item.classList.remove('order-empty');
-                        item.classList.add('order-preparing');
-                        item.textContent = getRandomOrderNumber();
-                    }
+            // Collect all order items by column
+            orderRows.forEach(row => {
+                const items = row.querySelectorAll('.order-item');
+                if (items.length >= 2) {
+                    preparingItems.push(items[0]); // Left column (Preparing)
+                    readyItems.push(items[1]);     // Right column (Ready)
+                }
+            });
+
+            // Reset all items to empty
+            [...preparingItems, ...readyItems].forEach(item => {
+                item.className = 'order-item order-empty';
+                item.textContent = '';
+            });
+
+            // Get restaurant's current orders (simulate data)
+            const restaurantId = restaurantCard.querySelector('.restaurant-name').textContent;
+            const orderData = getRestaurantOrderData(restaurantId);
+
+            // Fill preparing column from top
+            orderData.preparing.forEach((orderNum, index) => {
+                if (index < preparingItems.length) {
+                    preparingItems[index].className = 'order-item order-preparing';
+                    preparingItems[index].textContent = orderNum;
+                }
+            });
+
+            // Fill ready column from top  
+            orderData.ready.forEach((orderNum, index) => {
+                if (index < readyItems.length) {
+                    readyItems[index].className = 'order-item order-ready';
+                    readyItems[index].textContent = orderNum;
                 }
             });
         }
 
-        setInterval(simulateOrderUpdates, 3000);
+        // Simulate restaurant order data
+        let restaurantOrderData = {};
+
+        function getRestaurantOrderData(restaurantName) {
+            if (!restaurantOrderData[restaurantName]) {
+                restaurantOrderData[restaurantName] = {
+                    preparing: [],
+                    ready: []
+                };
+            }
+            return restaurantOrderData[restaurantName];
+        }
+
+        function addNewOrder(restaurantName) {
+            const data = getRestaurantOrderData(restaurantName);
+            if (data.preparing.length < 8) { // Max 8 preparing orders
+                data.preparing.push(getRandomOrderNumber());
+            }
+        }
+
+        function moveOrderToReady(restaurantName) {
+            const data = getRestaurantOrderData(restaurantName);
+            if (data.preparing.length > 0 && data.ready.length < 8) {
+                // Move the oldest (first) preparing order to ready
+                const orderNum = data.preparing.shift(); // Remove from preparing (top)
+                data.ready.push(orderNum); // Add to ready (bottom)
+                return true; // Return true if moved successfully
+            }
+            return false;
+        }
+
+        function pickupOrder(restaurantName) {
+            const data = getRestaurantOrderData(restaurantName);
+            if (data.ready.length > 0) {
+                data.ready.shift(); // Remove from ready (top)
+            }
+        }
+
+        function simulateOrderUpdates() {
+            const restaurantCards = document.querySelectorAll('.restaurant-card');
+            
+            restaurantCards.forEach(card => {
+                const restaurantName = card.querySelector('.restaurant-name').textContent;
+                const data = getRestaurantOrderData(restaurantName);
+                
+                // Priority 1: Move preparing orders to ready (higher chance for orders waiting longer)
+                if (data.preparing.length > 0) {
+                    // Higher chance to move if there are many preparing orders
+                    const moveChance = 0.15 + (data.preparing.length * 0.02); // 15% base + 2% per order
+                    if (Math.random() < moveChance) {
+                        moveOrderToReady(restaurantName);
+                    }
+                }
+                
+                // Priority 2: Pickup ready orders (simulate customers picking up)
+                if (data.ready.length > 0) {
+                    // Higher chance to pickup if many orders are ready
+                    const pickupChance = 0.08 + (data.ready.length * 0.01); // 8% base + 1% per order
+                    if (Math.random() < pickupChance) {
+                        pickupOrder(restaurantName);
+                    }
+                }
+                
+                // Priority 3: Add new orders (only if not too many preparing)
+                if (data.preparing.length < 5) { // Keep some room for new orders
+                    if (Math.random() < 0.12) { // 12% chance to add new order
+                        addNewOrder(restaurantName);
+                    }
+                }
+                
+                // Update display with smooth transition
+                updateRestaurantOrders(card);
+            });
+        }
+
+        // Initialize with some sample data
+        function initializeOrders() {
+            const restaurantCards = document.querySelectorAll('.restaurant-card');
+            
+            restaurantCards.forEach((card, index) => {
+                const restaurantName = card.querySelector('.restaurant-name').textContent;
+                const data = getRestaurantOrderData(restaurantName);
+                
+                // Add some initial orders
+                const preparingCount = Math.floor(Math.random() * 4) + 1;
+                const readyCount = Math.floor(Math.random() * 3);
+                
+                for (let i = 0; i < preparingCount; i++) {
+                    data.preparing.push(getRandomOrderNumber());
+                }
+                
+                for (let i = 0; i < readyCount; i++) {
+                    data.ready.push(getRandomOrderNumber());
+                }
+                
+                updateRestaurantOrders(card);
+            });
+        }
+
+        // Initialize orders on page load
+        initializeOrders();
+        
+        // Update more frequently for smoother transitions
+        setInterval(simulateOrderUpdates, 2000); // Every 2 seconds
 
         document.addEventListener('keydown', function(e) {
             switch(e.key) {
@@ -839,13 +982,30 @@
                     break;
                 case 'n':
                 case 'N':
-                    const emptyItems = document.querySelectorAll('.order-item.order-empty');
-                    const randomEmpty = emptyItems[Math.floor(Math.random() * emptyItems.length)];
-                    if (randomEmpty) {
-                        randomEmpty.classList.remove('order-empty');
-                        randomEmpty.classList.add('order-preparing');
-                        randomEmpty.textContent = getRandomOrderNumber();
-                    }
+                    // Add new order to random restaurant
+                    const restaurantCards = document.querySelectorAll('.restaurant-card');
+                    const randomCard = restaurantCards[Math.floor(Math.random() * restaurantCards.length)];
+                    const restaurantName = randomCard.querySelector('.restaurant-name').textContent;
+                    addNewOrder(restaurantName);
+                    updateRestaurantOrders(randomCard);
+                    break;
+                case 'm':
+                case 'M':
+                    // Move order to ready for random restaurant
+                    const restaurantCards2 = document.querySelectorAll('.restaurant-card');
+                    const randomCard2 = restaurantCards2[Math.floor(Math.random() * restaurantCards2.length)];
+                    const restaurantName2 = randomCard2.querySelector('.restaurant-name').textContent;
+                    moveOrderToReady(restaurantName2);
+                    updateRestaurantOrders(randomCard2);
+                    break;
+                case 'p':
+                case 'P':
+                    // Pickup order from random restaurant
+                    const restaurantCards3 = document.querySelectorAll('.restaurant-card');
+                    const randomCard3 = restaurantCards3[Math.floor(Math.random() * restaurantCards3.length)];
+                    const restaurantName3 = randomCard3.querySelector('.restaurant-name').textContent;
+                    pickupOrder(restaurantName3);
+                    updateRestaurantOrders(randomCard3);
                     break;
             }
         });
